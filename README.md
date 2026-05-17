@@ -73,9 +73,9 @@ Commentary:
 
 ---
 
-## What's new in 0.3.0
+## What XFMS does for you
 
-XFMS just got materially smarter about *how* it picks and *why*:
+Beyond ranking, XFMS gives you these levers to honor what you actually meant:
 
 - **`--primary <branch>`** — sacrosanct user preference. When you say
   *"cheapest model, period"*, the engine switches to lexicographic

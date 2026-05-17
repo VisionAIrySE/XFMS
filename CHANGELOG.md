@@ -6,6 +6,15 @@ allowed to introduce breaking changes with a `BREAKING:` note.
 
 ---
 
+## [0.3.5] — 2026-05-17 — version-agnostic features heading
+
+Docs-only patch. The "What's new in 0.3.0" section was useful when
+0.3.0 was the latest release, but every docs bump made it look like
+archived release notes. Renamed to "What XFMS does for you" so the
+content reads as canonical capabilities, not a changelog page.
+
+---
+
 ## [0.3.4] — 2026-05-17 — Model Source bridge into the thesis
 
 Docs-only patch. The Xpansion section now has a clear bridge
