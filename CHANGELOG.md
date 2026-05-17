@@ -6,6 +6,35 @@ allowed to introduce breaking changes with a `BREAKING:` note.
 
 ---
 
+## [0.4.0] — 2026-05-17 — drop BYOK; hosted MCP endpoint goes live
+
+Breaking-ish (in the SDK contract; transparent in practice): the
+OpenRouter key is no longer required to use the XFMS client. Old
+code that called `XFMSClient()` without an OR key configured used
+to raise; it now succeeds and uses the hosted endpoint's own key
+for inference. Calls that supply an OR key still route through it
+as an override.
+
+- Removed BYOK language from the package docstring, the client
+  docstring, the CLI help text, the stdio MCP server docstring,
+  and the README. The "Why BYOK" section was removed entirely.
+- `_resolve_openrouter_key` now returns `None` instead of raising
+  when no key is present.
+- The `X-OpenRouter-Key` request header is omitted when no key is
+  configured. Engine falls back to its own `OPENROUTER_API_KEY`
+  env var server-side.
+- README now leads with the hosted MCP URL install path —
+  `https://xfms.vercel.app/mcp/` — and demotes the `pip install
+  xfms[mcp]` stdio install as an offline alternative.
+
+Tests: 16 client tests passing. The old
+`test_missing_openrouter_key_raises_byok_error` inverted to
+`test_missing_openrouter_key_is_allowed`; new
+`test_no_openrouter_header_when_key_absent` verifies the header
+is absent on requests when no key is configured.
+
+---
+
 ## [0.3.5] — 2026-05-17 — version-agnostic features heading
 
 Docs-only patch. The "What's new in 0.3.0" section was useful when
