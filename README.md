@@ -61,8 +61,19 @@ pip install xfms
 
 You need two free keys:
 
-- **XFMS access key** — identifies you to the hosted API. Request
-  one at [xpansion.dev/xfms/get-started](https://xpansion.dev).
+- **Xpansion Framework Model Source access key** — identifies you
+  to the hosted API. Request one by submitting your email to the
+  signup endpoint:
+
+  ```bash
+  curl -X POST https://xfms.vercel.app/signup \
+    -H "Content-Type: application/json" \
+    -d '{"email":"you@yourdomain.com"}'
+  ```
+
+  You'll get a confirmation email; click the button inside and
+  your API key arrives in a follow-up email.
+
 - **OpenRouter key** — your BYOK (bring-your-own-key). XFMS makes a
   small LLM call per pick to figure out which benchmarks matter for
   your stated purpose. That call goes through *your* OpenRouter
