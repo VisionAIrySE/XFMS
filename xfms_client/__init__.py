@@ -1,14 +1,14 @@
 """XFMS — Xpansion Framework Model Source. Client library.
 
 Pick the right LLM for your task by hitting the hosted XFMS API
-at xfms.vercel.app. BYOK — you supply your own OpenRouter key so
-your inference cost stays with you.
+at xfms.vercel.app. Inference cost is covered by the hosted
+endpoint — you only need a free XFMS access token to use it.
 
 Quick start:
 
     from xfms_client import XFMSClient
 
-    xfms = XFMSClient()  # reads XFMS_API_KEY + OPENROUTER_API_KEY from env
+    xfms = XFMSClient()  # reads XFMS_API_KEY from env
     result = xfms.rank("writing a tight editorial under a budget")
     print(result["models"][0]["name"])
 
@@ -18,5 +18,5 @@ Part of the Xpansion Framework — https://xpansion.dev.
 
 from .client import XFMSClient, XFMSError, rank, pick
 
-__version__ = "0.3.5"
+__version__ = "0.4.0"
 __all__ = ["XFMSClient", "XFMSError", "rank", "pick", "__version__"]

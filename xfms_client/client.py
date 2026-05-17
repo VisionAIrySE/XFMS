@@ -1,15 +1,16 @@
 """HTTP client for the XFMS hosted API.
 
-This is a thin wrapper. It takes your purpose, attaches your
-OpenRouter key (BYOK), POSTs to /rank, and returns the response.
-Nothing strategic lives here — the math, the catalog, and the
-ranking logic all run on the hosted side.
+This is a thin wrapper. It takes your purpose, POSTs to /rank,
+and returns the response. Nothing strategic lives here — the
+math, the catalog, and the ranking logic all run on the hosted
+side, including the inference call that figures out which
+benchmarks matter for your purpose.
 
-The XFMS API key gets you in the door (request one at
-xpansion.dev/xfms/get-started). The OpenRouter key is the BYOK
-piece — it pays for the inference call XFMS makes to figure out
-which benchmarks matter for your stated purpose. Your key, your
-cost, your control.
+You only need an XFMS access token to use the hosted API (free,
+request one at xpansion.dev/xfms/get-started). The hosted endpoint
+covers its own inference cost — there's no OpenRouter key required.
+Power users CAN supply one to route inference through their own
+OpenRouter account, but it's optional.
 """
 
 from __future__ import annotations
@@ -48,34 +49,38 @@ def _resolve_api_key(explicit: str | None) -> str:
     )
 
 
-def _resolve_openrouter_key(explicit: str | None) -> str:
-    """Find the caller's OpenRouter key. Required — BYOK."""
+def _resolve_openrouter_key(explicit: str | None) -> str | None:
+    """Find the caller's OpenRouter key if one was provided.
+
+    Returns None when no key is set anywhere — the hosted endpoint
+    covers inference with its own key in that case. Power users
+    can supply one via arg, env, or secrets file to route inference
+    through their own OpenRouter account instead.
+    """
     if explicit:
         return explicit.strip()
     env = os.environ.get("OPENROUTER_API_KEY", "").strip()
     if env:
         return env
-    raise XFMSError(
-        "XFMS is BYOK — bring your own OpenRouter key. Set the "
-        "OPENROUTER_API_KEY environment variable, or pass "
-        "openrouter_api_key=... to XFMSClient. Sign up free at "
-        "https://openrouter.ai/keys."
-    )
+    return None
 
 
 class XFMSClient:
     """Client for the hosted XFMS API at xfms.vercel.app.
 
-    The client carries two keys for every call:
+    Only one credential is required:
 
     - `api_key` — your XFMS access token. Free, request at
       xpansion.dev/xfms/get-started. Identifies your account for
       rate limiting and the Xpansion mailing list.
-    - `openrouter_api_key` — your OpenRouter key. XFMS makes a small
-      LLM call per /rank to figure out which benchmarks matter for
-      your purpose. That call goes through *your* OpenRouter
-      account, so the inference cost stays with you. Typical cost:
-      ~$0.001 per rank.
+
+    Optional override:
+
+    - `openrouter_api_key` — if you want the small inference call
+      XFMS makes (to figure out which benchmarks matter for your
+      purpose) to route through your OWN OpenRouter account. By
+      default the hosted endpoint covers it with its own key, and
+      you owe nothing for inference.
     """
 
     def __init__(
@@ -86,7 +91,7 @@ class XFMSClient:
         timeout: float = _DEFAULT_TIMEOUT,
     ):
         self._api_key = _resolve_api_key(api_key)
-        self._or_key = _resolve_openrouter_key(openrouter_api_key)
+        self._or_key: str | None = _resolve_openrouter_key(openrouter_api_key)
         self._base_url = (
             base_url or os.environ.get("XFMS_BASE_URL") or _DEFAULT_BASE_URL
         ).rstrip("/")
@@ -213,15 +218,17 @@ class XFMSClient:
     # ── transport ──────────────────────────────────────────────────────
 
     def _post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+        headers: dict[str, str] = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "xfms-python-client/0.1",
+        }
+        if self._or_key:
+            headers["X-OpenRouter-Key"] = self._or_key
         try:
             r = self._http.post(
                 f"{self._base_url}{path}",
-                headers={
-                    "Authorization": f"Bearer {self._api_key}",
-                    "X-OpenRouter-Key": self._or_key,
-                    "Content-Type": "application/json",
-                    "User-Agent": "xfms-python-client/0.1",
-                },
+                headers=headers,
                 json=body,
             )
         except httpx.HTTPError as e:
@@ -234,8 +241,10 @@ class XFMSClient:
             )
         if r.status_code == 402:
             raise XFMSError(
-                "OpenRouter key was rejected. Confirm your "
-                "OPENROUTER_API_KEY is valid and funded."
+                "Inference call failed at the hosted endpoint. If you "
+                "supplied your own OpenRouter key, confirm it is valid "
+                "and funded; otherwise this is a server-side issue at "
+                "xfms.vercel.app — please report it."
             )
         if r.status_code == 429:
             raise XFMSError(

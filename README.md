@@ -118,18 +118,17 @@ You need two free keys:
   You'll get a confirmation email; click the button inside and
   your API key arrives in a follow-up email.
 
-- **OpenRouter key** — your BYOK (bring-your-own-key). XFMS makes a
-  small LLM call per pick to figure out which benchmarks matter for
-  your stated purpose. That call goes through *your* OpenRouter
-  account, so your inference cost stays with you (~$0.001 per
-  pick). Sign up at [openrouter.ai/keys](https://openrouter.ai/keys).
-
-Configure them once:
+That's it — the hosted endpoint covers inference. There's no
+OpenRouter key to provision, no per-pick cost on you, no second
+account to manage. Configure the one key:
 
 ```bash
 export XFMS_API_KEY=xfms_live_...
-export OPENROUTER_API_KEY=sk-or-v1-...
 ```
+
+(Power users CAN supply their own OpenRouter key via
+`OPENROUTER_API_KEY` or `--openrouter-key` to route inference
+through their own account — but it's purely optional.)
 
 ## Use
 
@@ -213,12 +212,12 @@ pip install 'xfms[mcp]'
 
 Then connect it to whichever assistant you use:
 
-**Claude Code** (Anthropic's official CLI) — one command:
+**Claude Code** (Anthropic's official CLI) — one command. No
+OpenRouter key required; the hosted endpoint covers it:
 
 ```bash
 claude mcp add xfms -- xfms-mcp \
-  --env XFMS_API_KEY=xfms_live_your_key_here \
-  --env OPENROUTER_API_KEY=sk-or-v1-your_key_here
+  --env XFMS_API_KEY=xfms_live_your_key_here
 ```
 
 Then ask Claude Code: *"Use XFMS to pick a model for summarizing
@@ -235,25 +234,19 @@ Then ask Claude Code: *"Use XFMS to pick a model for summarizing
     "xfms": {
       "command": "xfms-mcp",
       "env": {
-        "XFMS_API_KEY": "xfms_live_your_key_here",
-        "OPENROUTER_API_KEY": "sk-or-v1-your_key_here"
+        "XFMS_API_KEY": "xfms_live_your_key_here"
       }
     }
   }
 }
 ```
 
-Both keys are **yours** — XFMS doesn't sit in the middle of your
-inference. Get them here:
-
-- **XFMS key** — free, [request via curl](https://github.com/VisionAIrySE/XFMS#install)
-  or visit [xpansion.dev/xfms/get-started](https://xpansion.dev/xfms/get-started).
-  Arrives by email after you click the confirmation link.
-- **OpenRouter key** — your BYOK. XFMS makes one small classifier
-  call per pick to figure out which benchmarks matter for your
-  stated purpose. That call runs against *your* OpenRouter account,
-  so the inference cost stays with you (~$0.001 per pick). Sign up
-  free at [openrouter.ai/keys](https://openrouter.ai/keys).
+You only need one key — the free XFMS access token. Request it at
+[xpansion.dev/xfms/get-started](https://xpansion.dev/xfms/get-started)
+or via [curl](https://github.com/VisionAIrySE/XFMS#install); it
+arrives by email after you click the confirmation link. The hosted
+endpoint covers the small classifier call that figures out which
+benchmarks matter for your purpose — you don't pay for inference.
 
 Restart your client, then ask it:
 
@@ -284,21 +277,6 @@ xfms.rank(
     leaf_priorities={"structured_output_reliability": 1.0, "factuality": 0.5},
 )
 ```
-
----
-
-## Why BYOK
-
-The hosted XFMS endpoint runs your purpose through a small language
-model to figure out which benchmarks matter most for your task —
-that's how the "inferred weights" block in the response gets built.
-
-That model call goes through *your* OpenRouter account, not ours.
-You pay for your own thinking; we pay for keeping the catalog
-fresh. It's the right alignment of who's on the hook for what.
-
-Typical cost per pick: about **$0.001** on OpenRouter (one short
-classifier call).
 
 ---
 

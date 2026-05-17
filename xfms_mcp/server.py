@@ -15,8 +15,8 @@ Three tools are exposed:
                 without ranking
 
 All three call the hosted XFMS endpoint at xfms.vercel.app. The
-caller's OpenRouter key is sent per request (BYOK) so the inference
-cost stays with them.
+hosted endpoint covers inference cost; no OpenRouter key is
+required to use these tools.
 """
 
 from __future__ import annotations

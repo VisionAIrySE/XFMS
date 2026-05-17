@@ -304,7 +304,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--api-key",
                    help="Override the XFMS API key (default: $XFMS_API_KEY).")
     p.add_argument("--openrouter-key",
-                   help="Override the OpenRouter key (default: $OPENROUTER_API_KEY).")
+                   help=("Optional: route the inference call through your "
+                         "own OpenRouter account instead of the hosted "
+                         "endpoint's key. Default: $OPENROUTER_API_KEY if "
+                         "set, otherwise unused (hosted endpoint covers it)."))
     p.add_argument("--json", action="store_true",
                    help="Emit raw JSON instead of human-readable output.")
     sub = p.add_subparsers(dest="command", required=True)

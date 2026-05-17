@@ -79,11 +79,30 @@ def test_missing_xfms_key_raises_helpful_error(monkeypatch):
         XFMSClient()
 
 
-def test_missing_openrouter_key_raises_byok_error(monkeypatch):
-    monkeypatch.setenv("XFMS_API_KEY", "xfms_live_test")
+def test_missing_openrouter_key_is_allowed(monkeypatch):
+    """OR key is an OPTIONAL override. Without one, the client still
+    builds — the hosted endpoint covers inference with its own key."""
+    monkeypatch.setenv("XFMS_API_KEY", "k")
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
-    with pytest.raises(XFMSError, match="BYOK"):
-        XFMSClient()
+    c = XFMSClient()
+    assert c._or_key is None
+
+
+def test_no_openrouter_header_when_key_absent(monkeypatch):
+    """When no OR key is configured, the X-OpenRouter-Key header
+    must NOT be sent — the hosted endpoint falls back to its own key."""
+    monkeypatch.setenv("XFMS_API_KEY", "k")
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    t = _MockTransport(body={"status": "ranked", "models": [],
+                              "catalog_size": 0, "filtered_out": 0})
+    # Build directly — the _client_with_transport helper would
+    # setdefault an OR key, which is exactly what we want to prove
+    # is not required.
+    c = XFMSClient()
+    c._http = httpx.Client(transport=t)
+    c.rank("test purpose")
+    req = t.calls[-1]
+    assert "x-openrouter-key" not in {h.lower() for h in req.headers.keys()}
 
 
 def test_explicit_keys_win_over_env(monkeypatch):
