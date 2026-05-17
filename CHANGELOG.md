@@ -6,6 +6,24 @@ allowed to introduce breaking changes with a `BREAKING:` note.
 
 ---
 
+## [0.3.4] — 2026-05-17 — Model Source bridge into the thesis
+
+Docs-only patch. The Xpansion section now has a clear bridge
+between the canonical thesis and the rest of the module list — a
+"Model Source — the model-selection enforcement" subsection that
+re-enters the thesis frame and shows why XFMS exists *as one
+specific bridge*: when you say "the best model for this task,"
+you're compressing a lot; AI on its own predicts the pattern and
+gives you a plausible-sounding answer often wrong for you; XFMS
+does the decompression and verifies the recommendation against
+your real query.
+
+The sibling-module list then flows naturally as "the same
+decompress-enforce-verify contract applied to different parts of
+the work."
+
+---
+
 ## [0.3.3] — 2026-05-17 — thesis-led Xpansion section
 
 Docs-only patch. The "Part of the Xpansion Framework" section now

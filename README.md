@@ -349,12 +349,30 @@ Xpansion closes the gap. It **decompresses finite intent upfront**,
 binary-verified results against the intent across persistent
 memory** that survives every session boundary.
 
+### Model Source — the model-selection enforcement
+
+When you say *"the best model for this task"*, you're compressing
+a lot: what counts as *best* depends on whether you care about
+factual reasoning or coherent prose, whether cost matters more
+than latency, whether you actually need vision or just text,
+whether the call has to stream, whether a particular benchmark
+dominates your real workload. AI on its own predicts the pattern
+— *what model do most people pick for queries that look like
+this?* — and gives you a plausible-sounding answer that's often
+wrong for *you*.
+
+XFMS does the decompression. It takes your stated purpose, infers
+which benchmarks actually map to it, honors your stated primary
+preferences without silently overriding them, surfaces the latent
+requirements you didn't know to ask about (streaming for real-time
+chat, vision for OCR), and probes the top picks against your real
+query to verify the recommendation — not predict it. Then it
+tells you, in plain English, why it picked what it picked.
+
 ### One module per enforcement
 
-XFMS is the piece that answers *"which model should I be using for
-this?"* — but it lives inside a broader stack, where each module
-enforces one specific commitment AI can't be trusted to honor on
-its own:
+The rest of the Xpansion stack enforces the same decompress-
+enforce-verify contract for different parts of the work:
 
 - **Dispatch** (`Dispatch`) — runtime task router. Watches what
   kind of work you're doing and routes it to the right tool.
