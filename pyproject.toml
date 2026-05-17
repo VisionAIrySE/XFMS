@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xfms"
+version = "0.1.0"
+description = "Pick the right LLM for your task. Xpansion Framework Model Source — aggregates 8 independent benchmark sources via the hosted XFMS API. BYOK so your inference cost stays with you."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Russ Wright", email = "russ@visionairy.biz"},
+]
+maintainers = [
+    {name = "Russ Wright", email = "russ@visionairy.biz"},
+]
+keywords = [
+    "llm", "model-selection", "ai", "ai-tools", "claude-code",
+    "openrouter", "benchmarks", "llm-evaluation", "llm-routing",
+    "recommendation-system", "xpansion-framework", "byok",
+    "ai-evaluation", "model-recommender", "llm-comparison",
+    "anthropic", "openai", "google-gemini", "deepseek", "lmsys-arena",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.urls]
+Homepage = "https://xpansion.dev"
+Repository = "https://github.com/VisionAIrySE/XFMS"
+Documentation = "https://github.com/VisionAIrySE/XFMS#readme"
+"Methodology" = "https://github.com/VisionAIrySE/XFMS/blob/main/docs/methodology.md"
+"Xpansion Framework" = "https://github.com/VisionAIrySE/XFMS/blob/main/docs/xpansion-overview.md"
+"Bug Tracker" = "https://github.com/VisionAIrySE/XFMS/issues"
+"Sponsor" = "https://github.com/sponsors/VisionAIrySE"
+
+[project.scripts]
+xfms = "xfms_client.cli:main"
+
+[tool.setuptools]
+packages = ["xfms_client"]

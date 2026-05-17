@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+title: "XFMS — Xpansion Framework Model Source"
+message: "If you use XFMS in academic work or product evaluation, please cite it."
+type: software
+authors:
+  - family-names: Wright
+    given-names: Russ
+    email: russ@visionairy.biz
+    affiliation: Visionairy
+abstract: >
+  XFMS is the model-selection module of the Xpansion Framework. Given a
+  user purpose, it returns a ranked shortlist of LLMs with per-pick
+  rationale, aggregating evidence from eight independent third-party
+  benchmark sources without trusting provider self-reported numbers.
+  Score normalization, name resolution across sources, coverage-gated
+  weight renormalization, and user-intent override are all documented
+  in docs/methodology.md. This repository is the client library; the
+  recommender engine and catalog run as a hosted service.
+url: "https://github.com/VisionAIrySE/XFMS"
+repository-code: "https://github.com/VisionAIrySE/XFMS"
+license: MIT
+keywords:
+  - LLM
+  - model selection
+  - benchmark aggregation
+  - LLM evaluation
+  - LLM routing
+  - AI tools
+  - Xpansion Framework
+  - recommendation system
+version: 0.1.0
+date-released: 2026-05-16

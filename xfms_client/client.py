@@ -1,0 +1,241 @@
+"""HTTP client for the XFMS hosted API.
+
+This is a thin wrapper. It takes your purpose, attaches your
+OpenRouter key (BYOK), POSTs to /rank, and returns the response.
+Nothing strategic lives here — the math, the catalog, and the
+ranking logic all run on the hosted side.
+
+The XFMS API key gets you in the door (request one at
+xpansion.dev/xfms/get-started). The OpenRouter key is the BYOK
+piece — it pays for the inference call XFMS makes to figure out
+which benchmarks matter for your stated purpose. Your key, your
+cost, your control.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+from typing import Any
+
+import httpx
+
+_DEFAULT_BASE_URL = "https://xfms.vercel.app"
+_DEFAULT_TIMEOUT = 30.0
+
+
+class XFMSError(Exception):
+    """Raised when the API returns an error or the call fails."""
+
+
+def _resolve_api_key(explicit: str | None) -> str:
+    """Find the XFMS API key in: arg → env → secrets file."""
+    if explicit:
+        return explicit.strip()
+    env = os.environ.get("XFMS_API_KEY", "").strip()
+    if env:
+        return env
+    secrets_path = Path("~/.claude/secrets/xfms_api_key.txt").expanduser()
+    if secrets_path.is_file():
+        contents = secrets_path.read_text().strip()
+        if contents:
+            return contents
+    raise XFMSError(
+        "No XFMS API key found. Set the XFMS_API_KEY environment "
+        "variable, or pass api_key=... to XFMSClient. Request one at "
+        "https://xpansion.dev/xfms/get-started."
+    )
+
+
+def _resolve_openrouter_key(explicit: str | None) -> str:
+    """Find the caller's OpenRouter key. Required — BYOK."""
+    if explicit:
+        return explicit.strip()
+    env = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if env:
+        return env
+    raise XFMSError(
+        "XFMS is BYOK — bring your own OpenRouter key. Set the "
+        "OPENROUTER_API_KEY environment variable, or pass "
+        "openrouter_api_key=... to XFMSClient. Sign up free at "
+        "https://openrouter.ai/keys."
+    )
+
+
+class XFMSClient:
+    """Client for the hosted XFMS API at xfms.vercel.app.
+
+    The client carries two keys for every call:
+
+    - `api_key` — your XFMS access token. Free, request at
+      xpansion.dev/xfms/get-started. Identifies your account for
+      rate limiting and the Xpansion mailing list.
+    - `openrouter_api_key` — your OpenRouter key. XFMS makes a small
+      LLM call per /rank to figure out which benchmarks matter for
+      your purpose. That call goes through *your* OpenRouter
+      account, so the inference cost stays with you. Typical cost:
+      ~$0.001 per rank.
+    """
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        openrouter_api_key: str | None = None,
+        base_url: str | None = None,
+        timeout: float = _DEFAULT_TIMEOUT,
+    ):
+        self._api_key = _resolve_api_key(api_key)
+        self._or_key = _resolve_openrouter_key(openrouter_api_key)
+        self._base_url = (
+            base_url or os.environ.get("XFMS_BASE_URL") or _DEFAULT_BASE_URL
+        ).rstrip("/")
+        self._timeout = timeout
+        self._http = httpx.Client(timeout=timeout)
+
+    # ── context manager so `with XFMSClient() as x:` cleans up ─────────
+
+    def __enter__(self) -> "XFMSClient":
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()
+
+    def close(self) -> None:
+        self._http.close()
+
+    # ── public API surface ─────────────────────────────────────────────
+
+    def health(self) -> dict[str, Any]:
+        """Confirm the hosted endpoint is reachable."""
+        r = self._http.get(f"{self._base_url}/health")
+        r.raise_for_status()
+        return r.json()
+
+    def rank(
+        self,
+        purpose: str,
+        *,
+        quality: float = 0.8,
+        cost: float = 0.3,
+        latency: float | None = None,
+        privacy: float | None = None,
+        capabilities: list[str] | None = None,
+        top_n: int = 5,
+        infer_quality_weights: bool = True,
+        infer_capabilities: bool = True,
+        leaf_priorities: dict[str, float] | None = None,
+        decision_source: str = "manual",
+        explain: bool = True,
+    ) -> dict[str, Any]:
+        """Rank the catalog for a stated purpose. Returns the JSON
+        response: models[], inferred_quality_weights, explanation,
+        auto_inferred_capabilities, etc."""
+        decisions: list[dict[str, Any]] = []
+        if capabilities:
+            decisions.append({
+                "branch": "capability",
+                "type": "required",
+                "required": list(capabilities),
+            })
+        else:
+            decisions.append({"branch": "capability", "type": "dontcare"})
+        decisions.append({"branch": "quality", "type": "weight", "value": quality})
+        decisions.append({"branch": "cost", "type": "weight", "value": cost})
+        decisions.append(
+            {"branch": "latency", "type": "weight", "value": latency}
+            if latency is not None
+            else {"branch": "latency", "type": "dontcare"}
+        )
+        decisions.append(
+            {"branch": "privacy", "type": "weight", "value": privacy}
+            if privacy is not None
+            else {"branch": "privacy", "type": "dontcare"}
+        )
+
+        body: dict[str, Any] = {
+            "purpose": purpose,
+            "decision_source": decision_source,
+            "decisions": decisions,
+            "top_n": top_n,
+            "infer_quality_weights": infer_quality_weights,
+            "infer_capabilities": infer_capabilities,
+            "explain": explain,
+        }
+        if leaf_priorities:
+            body["leaf_priorities"] = leaf_priorities
+
+        return self._post("/rank", body)
+
+    def pick(self, purpose: str, **kwargs: Any) -> dict[str, Any]:
+        """Return only the top pick. Same shape as rank() with
+        top_n=1, but returns the single model dict directly."""
+        result = self.rank(purpose, top_n=1, **kwargs)
+        models = result.get("models") or []
+        if not models:
+            raise XFMSError(
+                "No model met the criteria. Full response: "
+                + json.dumps(result, indent=2)[:500]
+            )
+        return models[0]
+
+    def discover(self, purpose: str, **kwargs: Any) -> dict[str, Any]:
+        """Walk the discovery tree without ranking. Useful for
+        seeing which dimensions matter for a stated purpose before
+        committing to weights."""
+        body = {"purpose": purpose, "decision_source": "manual", **kwargs}
+        return self._post("/discover", body)
+
+    # ── transport ──────────────────────────────────────────────────────
+
+    def _post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+        try:
+            r = self._http.post(
+                f"{self._base_url}{path}",
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "X-OpenRouter-Key": self._or_key,
+                    "Content-Type": "application/json",
+                    "User-Agent": "xfms-python-client/0.1",
+                },
+                json=body,
+            )
+        except httpx.HTTPError as e:
+            raise XFMSError(f"network error calling {path}: {e}") from e
+
+        if r.status_code == 401:
+            raise XFMSError(
+                "Authentication failed. Check XFMS_API_KEY (it must "
+                "be a key issued by xpansion.dev/xfms/get-started)."
+            )
+        if r.status_code == 402:
+            raise XFMSError(
+                "OpenRouter key was rejected. Confirm your "
+                "OPENROUTER_API_KEY is valid and funded."
+            )
+        if r.status_code == 429:
+            raise XFMSError(
+                "Rate limit hit. XFMS API keys are rate-limited; "
+                "wait and retry, or contact russ@visionairy.biz for "
+                "a higher limit."
+            )
+        if r.status_code >= 400:
+            raise XFMSError(
+                f"XFMS API error {r.status_code}: {r.text[:500]}"
+            )
+        return r.json()
+
+
+# ── module-level convenience functions ────────────────────────────────
+
+
+def rank(purpose: str, **kwargs: Any) -> dict[str, Any]:
+    """One-shot rank without managing a client object."""
+    with XFMSClient() as c:
+        return c.rank(purpose, **kwargs)
+
+
+def pick(purpose: str, **kwargs: Any) -> dict[str, Any]:
+    """One-shot pick (top-1) without managing a client object."""
+    with XFMSClient() as c:
+        return c.pick(purpose, **kwargs)

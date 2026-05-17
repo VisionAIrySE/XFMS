@@ -1,0 +1,62 @@
+XFMS — Xpansion Framework Model Source (client library)
+Copyright 2026 Russ Wright / Visionairy
+
+The XFMS client library (this repository) is distributed under the
+MIT License. See the LICENSE file for the full terms.
+
+──────────────────────────────────────────────────────────────────────
+What this repository contains
+──────────────────────────────────────────────────────────────────────
+
+This repository is a thin HTTP client and command-line tool for
+calling the hosted XFMS API at https://xfms.vercel.app. It does not
+contain the recommender engine, the score catalog, the catalog
+ingestion pipeline, or the methodology implementation — those run
+on the hosted service and are not open source.
+
+──────────────────────────────────────────────────────────────────────
+Patent notice
+──────────────────────────────────────────────────────────────────────
+
+XFMS is one module of the Xpansion Framework — a unified architecture
+for governing AI-assisted work. The Xpansion Framework methods and
+processes — including, without limitation:
+
+  - finite intent decomposition,
+  - code-enforced tool gating,
+  - binary terminal verification, and
+  - local-sovereign compounding memory
+
+— are the subject of pending patent applications filed by Russ Wright
+and Visionairy.
+
+The MIT license granted in the LICENSE file applies to the client
+library source code in this repository. It does NOT grant any rights,
+express or implied, to:
+
+  - the Xpansion Framework patents, pending or granted
+  - the XFMS recommender engine
+  - the XFMS score catalog
+  - the catalog ingestion pipeline
+  - any other Xpansion Framework intellectual property beyond the
+    client code in this repository
+
+──────────────────────────────────────────────────────────────────────
+Trademarks
+──────────────────────────────────────────────────────────────────────
+
+"XFMS", "Xpansion Framework", "Visionairy", and related marks are
+trademarks of Russ Wright / Visionairy. The MIT license does not
+grant rights to use these marks, except as needed to accurately
+identify the origin of the software.
+
+──────────────────────────────────────────────────────────────────────
+Contact
+──────────────────────────────────────────────────────────────────────
+
+For licensing questions, patent inquiries, or commercial use beyond
+the MIT license terms, contact:
+
+   Russ Wright
+   russ@visionairy.biz
+   https://xpansion.dev
