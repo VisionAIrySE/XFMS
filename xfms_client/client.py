@@ -129,6 +129,7 @@ class XFMSClient:
         decision_source: str = "manual",
         explain: bool = True,
         ab: bool = False,
+        clarify_when_ambiguous: bool = False,
     ) -> dict[str, Any]:
         """Rank the catalog for a stated purpose.
 
@@ -182,6 +183,7 @@ class XFMSClient:
             "infer_quality_weights": infer_quality_weights,
             "infer_capabilities": infer_capabilities,
             "explain": explain,
+            "clarify_when_ambiguous": clarify_when_ambiguous,
         }
         if leaf_priorities:
             body["leaf_priorities"] = leaf_priorities

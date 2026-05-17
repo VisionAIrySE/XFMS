@@ -16,6 +16,18 @@ from .client import XFMSClient, XFMSError
 
 def _format_rank(resp: dict[str, Any]) -> str:
     lines: list[str] = []
+
+    # Strict-mode clarification (or vague-purpose clarification) short-circuits
+    # the ranked-list shape and surfaces a question for the user instead.
+    if resp.get("status") == "clarification_needed":
+        lines.append("Clarification needed before XFMS can rank confidently:")
+        reason = resp.get("clarification_reason") or ""
+        if reason:
+            lines.append(f"  Reason: {reason}")
+        for q in resp.get("clarification_questions", []) or []:
+            lines.append(f"  • {q}")
+        return "\n".join(lines)
+
     lines.append(f"Status: {resp.get('status', '?')}")
     lines.append(
         f"Catalog: {resp.get('catalog_size', '?')} models — "
@@ -29,6 +41,15 @@ def _format_rank(resp: dict[str, Any]) -> str:
             f"Ranking mode: lexicographic on {', '.join(primary_branches)} "
             "(your primary driver wins; other dimensions only break ties)"
         )
+
+    ta = resp.get("tier_ambiguity")
+    if ta and ta.get("branches"):
+        lines.append("")
+        lines.append("Tie-breaker question (you named multiple co-equal drivers):")
+        if ta.get("question"):
+            lines.append(f"  {ta['question']}")
+        if ta.get("hint"):
+            lines.append(f"  → {ta['hint']}")
 
     auto_caps = resp.get("auto_inferred_capabilities") or []
     if auto_caps:
@@ -158,6 +179,7 @@ def _cmd_rank(c: XFMSClient, args: argparse.Namespace) -> int:
         decision_source=args.source,
         explain=not args.no_explain,
         ab=getattr(args, "ab", False),
+        clarify_when_ambiguous=getattr(args, "strict_priorities", False),
     )
     if args.json:
         print(json.dumps(r, indent=2))
@@ -179,6 +201,7 @@ def _cmd_pick(c: XFMSClient, args: argparse.Namespace) -> int:
         infer_capabilities=not args.no_infer_caps,
         leaf_priorities=_parse_leaf_priorities(args.leaf_priorities),
         decision_source=args.source,
+        clarify_when_ambiguous=getattr(args, "strict_priorities", False),
     )
     if args.json:
         print(json.dumps(m, indent=2))
@@ -257,6 +280,16 @@ def _add_decision_args(p: argparse.ArgumentParser) -> None:
     p.add_argument(
         "--no-infer-caps", action="store_true",
         help="Skip capability auto-inference (no auto-promotion of dontcare).",
+    )
+    p.add_argument(
+        "--strict-priorities", action="store_true",
+        help=(
+            "When the engine detects two or more co-equal drivers in your "
+            "input (e.g. 'cheap but high quality too'), STOP and ask you "
+            "which dimension breaks ties — instead of silently picking a "
+            "weighted blend. Without this flag, the engine blends and "
+            "surfaces the ambiguity as advisory text."
+        ),
     )
 
 
