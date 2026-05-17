@@ -16,3 +16,6 @@ venv/
 .vscode/
 .idea/
 .xf/
+
+# XSIA bypass marker (local-only, do not commit)
+.xfa_bypass

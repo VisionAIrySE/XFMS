@@ -129,6 +129,70 @@ from xfms_client import pick
 print(pick("fixing bugs in our Python codebase")["name"])
 ```
 
+---
+
+## Use it inside Claude Desktop, Cursor, or any MCP client
+
+XFMS ships with a built-in **Model Context Protocol** server, which
+is just a fancy name for a small program your AI assistant can talk
+to. Once it's connected, you can ask Claude Desktop or Cursor
+something like *"which model should I use for OCR on shipping
+manifests?"* and the assistant calls XFMS for you. No leaving the
+chat. No copy-pasting.
+
+Install the package with the MCP extra:
+
+```bash
+pip install 'xfms[mcp]'
+```
+
+Then drop this block into your client's config file:
+
+**Claude Desktop** — `~/Library/Application Support/Claude/claude_desktop_config.json`
+(macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+**Cursor** — `~/.cursor/mcp.json`, or paste through *Settings → MCP*:
+
+```json
+{
+  "mcpServers": {
+    "xfms": {
+      "command": "xfms-mcp",
+      "env": {
+        "XFMS_API_KEY": "xfms_live_your_key_here",
+        "OPENROUTER_API_KEY": "sk-or-v1-your_key_here"
+      }
+    }
+  }
+}
+```
+
+Both keys are **yours** — XFMS doesn't sit in the middle of your
+inference. Get them here:
+
+- **XFMS key** — free, [request via curl](https://github.com/VisionAIrySE/XFMS#install)
+  or visit [xpansion.dev/xfms/get-started](https://xpansion.dev/xfms/get-started).
+  Arrives by email after you click the confirmation link.
+- **OpenRouter key** — your BYOK. XFMS makes one small classifier
+  call per pick to figure out which benchmarks matter for your
+  stated purpose. That call runs against *your* OpenRouter account,
+  so the inference cost stays with you (~$0.001 per pick). Sign up
+  free at [openrouter.ai/keys](https://openrouter.ai/keys).
+
+Restart your client, then ask it:
+
+> *"Use XFMS to pick a model for summarizing long legal contracts."*
+
+Three tools are available to the assistant: **`rank`** (a ranked
+shortlist), **`pick`** (the single best pick), and **`discover`**
+(which quality dimensions matter for your purpose, without ranking).
+
+**One-click install via Smithery** — the [Smithery registry](https://smithery.ai)
+hosts a copy of this config so you can install without hand-editing
+JSON. Listed shortly after launch.
+
+---
+
 ## Override the system's inference
 
 If you know which quality dimension matters most for your task, say

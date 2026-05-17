@@ -43,6 +43,9 @@ dependencies = [
 dev = [
     "pytest>=8.0",
 ]
+mcp = [
+    "mcp>=1.0",
+]
 
 [project.urls]
 Homepage = "https://xpansion.dev"
@@ -55,6 +58,7 @@ Documentation = "https://github.com/VisionAIrySE/XFMS#readme"
 
 [project.scripts]
 xfms = "xfms_client.cli:main"
+xfms-mcp = "xfms_mcp.server:main"
 
 [tool.setuptools]
-packages = ["xfms_client"]
+packages = ["xfms_client", "xfms_mcp"]
