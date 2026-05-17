@@ -1,5 +1,10 @@
 # XFMS — Xpansion Framework Model Source
 
+[![PyPI](https://img.shields.io/pypi/v/xfms.svg?label=pypi&color=blue)](https://pypi.org/project/xfms/)
+[![Python](https://img.shields.io/pypi/pyversions/xfms.svg)](https://pypi.org/project/xfms/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Xpansion Framework](https://img.shields.io/badge/part%20of-Xpansion%20Framework-black)](https://xpansion.dev)
+
 **Pick the right LLM for your task — without the Twitter vibes.**
 
 State what you're using the model for. XFMS aggregates evidence from
