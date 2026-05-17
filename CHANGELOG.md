@@ -6,6 +6,30 @@ allowed to introduce breaking changes with a `BREAKING:` note.
 
 ---
 
+## [0.3.1] — 2026-05-17 — README polish + Claude Code coverage
+
+Docs-only release. No code changes; bumped to refresh the PyPI
+project page after substantial README updates.
+
+### Changed
+
+- README hero example refreshed to show the actual 0.3.0 output
+  (ranked picks with provider routes, inferred quality weights, plain-
+  English explanation, A/B probe block with commentary).
+- "What's new in 0.3.0" callout added near the top so the launch
+  features (`--primary`, `--ab`, `--strict-priorities`, latent-
+  requirement suggestions, deterministic cache) are visible without
+  scrolling.
+- MCP section now leads with **Claude Code** (Anthropic's official
+  CLI) and shows the one-line `claude mcp add xfms` install command.
+  Desktop and Cursor follow.
+- "Part of the Xpansion Framework" section materially expanded —
+  explains what Xpansion is, names the sibling modules (Dispatch,
+  XFFI, XFBA, XSIA, XFTC, XFXA), and frames XFMS as the first
+  module to ship public + free.
+
+---
+
 ## [0.3.0] — 2026-05-17 — trust spine + priority tiers + A/B probe
 
 The big launch-day release. Three architectural additions land together

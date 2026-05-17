@@ -38,23 +38,62 @@ to code that runs at request time, you just don't run it locally.
 ## What you get:
 
 ```
-My pick: GPT-5.5
+Top picks:
+   1. 0.842  GPT-5.5                 (openai/gpt-5.5)         via OpenAI
+   2. 0.811  Claude Opus 4.7         (anthropic/claude-opus-4.7) via Anthropic
+   3. 0.798  Gemini 3.1 Pro Preview  (google/gemini-3.1-pro-preview) via Google
 
-Strong on structured output and instruction following — the two
-dimensions that dominate code-edit work. Beats the Claude family on
-Aider Polyglot and matches it on LiveBench reasoning, at roughly
-60% of the per-token cost.
-
-Alternatives:
-2. claude-sonnet-4.6  — closer on coding quality, higher cost
-3. gemini-3-pro       — fastest, slightly weaker on tool use
-
-Inferred weights from your purpose:
-  • structured_output_reliability  42.0%  ← BigCodeBench, Aider
-  • instruction_following          28.0%  ← LiveBench, Arena
+Inferred quality weights from your purpose:
+  • structured_output_reliability  42.0%  ← BigCodeBench, Aider Polyglot
+  • instruction_following          28.0%  ← LiveBench, Tau-Bench
   • factuality                     20.0%  ← MMLU, GPQA
   • coherence                      10.0%  ← LongBench
+
+─── Explanation ───
+Picked GPT-5.5: strong on structured output and instruction following —
+the two dimensions that dominate code-edit work. Beats Claude on Aider
+Polyglot and matches it on LiveBench reasoning, at roughly 60% of the
+per-token cost.
 ```
+
+Want to see how the picks actually behave on your kind of query? Add `--ab`:
+
+```
+─── A/B probe ───
+Ran 5 test queries against the top picks.
+  • GPT-4o-mini  avg_latency=5579 ms  total_cost=$0.00156  successes=5
+  • GPT-5.5      avg_latency=8190 ms  total_cost=$0.07640  successes=5
+  • GPT-5.4      avg_latency=8783 ms  total_cost=$0.03493  successes=5
+
+Commentary:
+  Across 5 real test queries, GPT-4o-mini was both cheapest ($0.0016 total)
+  and fastest (5579 ms avg). Clear winner — 98% cheaper and 36% faster
+  than the slowest pick.
+```
+
+---
+
+## What's new in 0.3.0
+
+XFMS just got materially smarter about *how* it picks and *why*:
+
+- **`--primary <branch>`** — sacrosanct user preference. When you say
+  *"cheapest model, period"*, the engine switches to lexicographic
+  ranking: cost wins, other dimensions only break ties. No more
+  weighted-blend surprises.
+- **`--ab`** — runs the top 3 picks against 5 real test queries
+  (expanding to 10 or 15 if results trade off) and surfaces commentary
+  on who won what. Grounds the recommendation in actual model behavior,
+  not just benchmarks.
+- **`--strict-priorities`** — when you name two co-equal drivers
+  ("cheap but high quality too"), the engine refuses to silently
+  blend; it asks you which way to break the tie.
+- **Latent-requirement suggestions** — engine surfaces capabilities
+  you didn't ask for but probably need (streaming for real-time chat,
+  vision for OCR), so you don't get burned by what you didn't know.
+- **Deterministic by design** — every internal model call is content-
+  cached; same input always returns the same answer. The "I got
+  different picks for the same question" failure mode is gone.
 
 ---
 
@@ -158,14 +197,13 @@ print(pick("fixing bugs in our Python codebase")["name"])
 
 ---
 
-## Use it inside Claude Desktop, Cursor, or any MCP client
+## Use it inside Claude Code, Claude Desktop, Cursor, or any MCP client
 
-XFMS ships with a built-in **Model Context Protocol** server, which
-is just a fancy name for a small program your AI assistant can talk
-to. Once it's connected, you can ask Claude Desktop or Cursor
-something like *"which model should I use for OCR on shipping
-manifests?"* and the assistant calls XFMS for you. No leaving the
-chat. No copy-pasting.
+XFMS ships with a built-in **MCP server** (Model Context Protocol —
+a small program your AI assistant can talk to). Once connected, you
+ask your assistant *"which model should I use for OCR on shipping
+manifests?"* and it calls XFMS for you. No leaving the chat. No
+copy-pasting between windows.
 
 Install the package with the MCP extra:
 
@@ -173,9 +211,20 @@ Install the package with the MCP extra:
 pip install 'xfms[mcp]'
 ```
 
-Then drop this block into your client's config file:
+Then connect it to whichever assistant you use:
 
-**Claude Desktop** — `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Claude Code** (Anthropic's official CLI) — one command:
+
+```bash
+claude mcp add xfms -- xfms-mcp \
+  --env XFMS_API_KEY=xfms_live_your_key_here \
+  --env OPENROUTER_API_KEY=sk-or-v1-your_key_here
+```
+
+Then ask Claude Code: *"Use XFMS to pick a model for summarizing
+50-page commercial leases."* It'll call the right tool.
+
+**Claude Desktop** — edit `~/Library/Application Support/Claude/claude_desktop_config.json`
 (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 **Cursor** — `~/.cursor/mcp.json`, or paste through *Settings → MCP*:
@@ -275,11 +324,39 @@ The short version:
 
 ## Part of the Xpansion Framework
 
-XFMS is one piece of a bigger architecture. The whole picture lives
-at [`docs/xpansion-overview.md`](docs/xpansion-overview.md).
+XFMS doesn't stand alone — it's the model-selection layer of the
+**[Xpansion Framework](https://xpansion.dev)**, a unified
+architecture for governing AI-assisted work. The Framework is built
+around a simple principle: AI tools should be guiding companions,
+not opaque automatons. Every recommendation it makes is auditable,
+every decision is sourced, every claim maps to evidence you can
+inspect.
+
+XFMS is the piece that answers *"which model should I be using for
+this?"* — but it lives inside a broader stack:
+
+- **Dispatch** — runtime task router. Identifies what kind of work
+  you're doing and calls the right tool (XFMS for model selection,
+  XFFI for spec generation, XFBA for contract enforcement, others).
+- **XFFI** — finite-intent decomposition. Turns *"build me a
+  feature"* into a finite spec with binary terminals before any
+  code gets written.
+- **XFBA** — contract enforcement on every edit. Stops broken
+  function signatures and mismatched types from shipping.
+- **XSIA** — systemic-impact analysis. Flags the blast radius of
+  proposed changes before they land.
+- **XFTC** — context-window governance. Manages how much of the
+  conversation history needs to stay in the assistant's working
+  memory.
+- **XFXA** — terminal verification at ship time. Confirms every
+  spec terminal is binarily met before declaring a task done.
+
+The full picture, with the rest of the modules, lives at
+[xpansion.dev](https://xpansion.dev).
 
 **Xpansion is in pre-signup right now.** Early access and founding
-licenses are open at [xpansion.dev](https://xpansion.dev).
+licenses are open at [xpansion.dev](https://xpansion.dev). XFMS is
+the first piece to ship public + free — the rest follow.
 
 ---
 
