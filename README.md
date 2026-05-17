@@ -196,61 +196,77 @@ print(pick("fixing bugs in our Python codebase")["name"])
 
 ---
 
-## Use it inside Claude Code, Claude Desktop, Cursor, or any MCP client
+## Use it inside Claude Code, Cursor, or any MCP client
 
-XFMS ships with a built-in **MCP server** (Model Context Protocol —
-a small program your AI assistant can talk to). Once connected, you
-ask your assistant *"which model should I use for OCR on shipping
+XFMS speaks **Model Context Protocol** (MCP) — the standard your
+AI assistant uses to call external tools. Once connected, you can
+ask the assistant *"which model should I use for OCR on shipping
 manifests?"* and it calls XFMS for you. No leaving the chat. No
 copy-pasting between windows.
 
-Install the package with the MCP extra:
+### Hosted install — one line, no install required
+
+The XFMS engine hosts the MCP server itself at
+**`https://xfms.vercel.app/mcp/`**. No `pip install`, no
+OpenRouter key — just point your MCP client at the URL:
+
+**Claude Code:**
 
 ```bash
-pip install 'xfms[mcp]'
+claude mcp add xfms --transport http https://xfms.vercel.app/mcp/ \
+  --header "Authorization: Bearer xfms_live_your_key_here"
 ```
 
-Then connect it to whichever assistant you use:
-
-**Claude Code** (Anthropic's official CLI) — one command. No
-OpenRouter key required; the hosted endpoint covers it:
-
-```bash
-claude mcp add xfms -- xfms-mcp \
-  --env XFMS_API_KEY=xfms_live_your_key_here
-```
-
-Then ask Claude Code: *"Use XFMS to pick a model for summarizing
-50-page commercial leases."* It'll call the right tool.
-
-**Claude Desktop** — edit `~/Library/Application Support/Claude/claude_desktop_config.json`
-(macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-**Cursor** — `~/.cursor/mcp.json`, or paste through *Settings → MCP*:
+**Cursor** (`~/.cursor/mcp.json`) — or paste through *Settings → MCP*:
 
 ```json
 {
   "mcpServers": {
     "xfms": {
-      "command": "xfms-mcp",
-      "env": {
-        "XFMS_API_KEY": "xfms_live_your_key_here"
+      "url": "https://xfms.vercel.app/mcp/",
+      "headers": {
+        "Authorization": "Bearer xfms_live_your_key_here"
       }
     }
   }
 }
 ```
 
-You only need one key — the free XFMS access token. Request it at
+**Continue / Cline / any other MCP host** — same URL + bearer header
+pattern; check your host's docs for the JSON config shape.
+
+You need one key — the free XFMS access token. Request it at
 [xpansion.dev/xfms/get-started](https://xpansion.dev/xfms/get-started)
 or via [curl](https://github.com/VisionAIrySE/XFMS#install); it
 arrives by email after you click the confirmation link. The hosted
-endpoint covers the small classifier call that figures out which
-benchmarks matter for your purpose — you don't pay for inference.
+endpoint pays for the small inference call XFMS makes internally —
+when your host supports MCP sampling (Claude Code does), the call
+routes through *your host's* LLM and we don't pay either. Either
+way, you don't.
 
 Restart your client, then ask it:
 
 > *"Use XFMS to pick a model for summarizing long legal contracts."*
+
+### Offline install — pip-installed local MCP server
+
+For air-gapped environments or local development, the `xfms`
+Python package also ships a stdio MCP server you can install
+locally:
+
+```bash
+pip install 'xfms[mcp]'
+```
+
+Then register it with your host (uses `xfms-mcp` as the command):
+
+```bash
+claude mcp add xfms -- xfms-mcp \
+  --env XFMS_API_KEY=xfms_live_your_key_here
+```
+
+The local server hits the same hosted endpoint, so the inference-cost
+behavior is identical to the hosted MCP install above.
 
 Three tools are available to the assistant: **`rank`** (a ranked
 shortlist), **`pick`** (the single best pick), and **`discover`**
