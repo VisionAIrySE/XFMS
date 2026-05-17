@@ -1,0 +1,86 @@
+name: Quarterly Patron Touch-Base Reminder
+
+# Fires on the 1st of January, April, July, October at 14:23 UTC.
+# Opens an issue with a checklist for reaching out to Patron-tier
+# sponsors ($100/mo) about Xpansion launch + founding-licensee
+# details.
+#
+# The Patron welcome message promised: founding-licensee discount
+# details, named credit in Xpansion launch materials, and a direct
+# line for feedback. This reminder ensures those obligations don't
+# decay through neglect.
+
+on:
+  schedule:
+    - cron: "23 14 1 1,4,7,10 *"
+  workflow_dispatch: {}
+
+jobs:
+  open-reminder-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create Patron quarterly reminder issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const now = new Date();
+            const monthNumber = now.getUTCMonth() + 1; // 1-12
+            const year = now.getUTCFullYear();
+            const qMap = { 1: 'Q1', 4: 'Q2', 7: 'Q3', 10: 'Q4' };
+            const quarter = qMap[monthNumber] || 'Q?';
+            const body = [
+              `## ${quarter} ${year} — Patron-tier touch-base required`,
+              ``,
+              `Auto-opened by the quarterly Patron reminder workflow.`,
+              `Reaching out personally to each Patron-tier sponsor`,
+              `($100/mo) is what we promised them in the GitHub`,
+              `Sponsors welcome message.`,
+              ``,
+              `### What was promised`,
+              ``,
+              `1. Founding-licensee discount details on Xpansion`,
+              `2. Named credit (or anonymity, if requested) in Xpansion`,
+              `   launch materials`,
+              `3. Direct line — Patrons can email russ@visionairy.biz`,
+              `   for use-case-specific help, and that line stays open`,
+              ``,
+              `### Checklist`,
+              ``,
+              `- [ ] Pull current Patron list from GitHub Sponsors`,
+              `      dashboard`,
+              `- [ ] For each Patron:`,
+              `  - [ ] Status update on Xpansion launch progress`,
+              `  - [ ] Confirm founding-licensee discount terms (if not`,
+              `        already locked)`,
+              `  - [ ] Confirm naming preference for launch materials`,
+              `  - [ ] Ask one open question — what would help them most`,
+              `        in their actual work this quarter`,
+              `- [ ] Log responses to feed product roadmap`,
+              `- [ ] Close this issue when all Patrons have been`,
+              `      contacted`,
+              ``,
+              `### Voice guardrail`,
+              ``,
+              `Personal. Not a templated mass-mail. Each Patron is`,
+              `funding the project at a level that justifies an`,
+              `individual touch — anything generic erodes the trust.`,
+              ``,
+              `### Quick-start prompt for Claude`,
+              ``,
+              `> Draft a personal outreach email to each Patron-tier`,
+              `> sponsor for ${quarter} ${year}. Cover the three items`,
+              `> from the Patron welcome message: Xpansion progress,`,
+              `> founding-licensee terms, naming preference. Add one`,
+              `> open question per email tied to what they've publicly`,
+              `> said they're working on. Keep each under 200 words.`,
+              ``,
+            ].join("\n");
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Patron quarterly touch-base — ${quarter} ${year}`,
+              body,
+              labels: ['sponsor-update', 'reminder', 'patron-tier'],
+            });

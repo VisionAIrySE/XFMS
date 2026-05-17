@@ -1,0 +1,73 @@
+name: Monthly Backer Update Reminder
+
+# Fires on the 1st of every month at 14:17 UTC (avoids the 0/30
+# minute marks that the entire GitHub Actions fleet hammers).
+# Opens an issue in this repo with a draft-checklist for the
+# monthly Backer-tier sponsor update.
+#
+# The Backer welcome message promised: "monthly behind-the-scenes
+# update on what we shipped, what we learned, what's still broken."
+# This reminder is the durable scheduling layer for that promise.
+
+on:
+  schedule:
+    - cron: "17 14 1 * *"
+  workflow_dispatch: {}  # allow manual trigger for testing
+
+jobs:
+  open-reminder-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create Backer update reminder issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const now = new Date();
+            const month = now.toLocaleString('en-US',
+              { month: 'long', year: 'numeric', timeZone: 'UTC' });
+            const body = [
+              `## ${month} Backer update — DRAFT REQUIRED`,
+              ``,
+              `This issue was opened automatically by the monthly`,
+              `Sponsor reminder workflow. Drafting and sending the`,
+              `update is what we promised our Backer-tier sponsors`,
+              `($25/mo) in the GitHub Sponsors welcome message.`,
+              ``,
+              `### Checklist`,
+              ``,
+              `- [ ] Pull this month's git log: \`git log --oneline --since="1 month ago"\``,
+              `- [ ] Pull this month's XFMT snapshots for context: \`/xfmtr "month in review"\``,
+              `- [ ] Draft sections:`,
+              `  - **What shipped** (concrete changes, features, fixes)`,
+              `  - **What we learned** (real insights, not corporate-speak)`,
+              `  - **What's still broken** (open issues, known limitations)`,
+              `  - **What's next** (one-paragraph forecast)`,
+              `- [ ] Run draft past Russ for voice review`,
+              `- [ ] Send through GitHub Sponsors → Manage Sponsors → Send Update`,
+              `- [ ] Close this issue with link to the sent update`,
+              ``,
+              `### Voice guardrail`,
+              ``,
+              `Plain-English. No jargon walls. Sponsors fund the work`,
+              `because they trust the project; the update should sound`,
+              `like a builder talking to a builder, not a press release.`,
+              ``,
+              `### Quick-start prompt for Claude`,
+              ``,
+              `> Draft this month's Backer update for XFMS sponsors.`,
+              `> Pull the month's git log, latest XFMT snapshots, and`,
+              `> any closed GitHub issues. Lead with what shipped that`,
+              `> sponsors will care about (not internal refactors).`,
+              `> Use the Backer welcome message's section structure.`,
+              `> Keep it under 400 words.`,
+              ``,
+            ].join("\n");
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Backer update — ${month}`,
+              body,
+              labels: ['sponsor-update', 'reminder'],
+            });
