@@ -6,6 +6,24 @@ allowed to introduce breaking changes with a `BREAKING:` note.
 
 ---
 
+## [0.3.2] — 2026-05-17 — names-first phrasing in Xpansion section
+
+Docs-only patch. Caught on the 0.3.1 PyPI page review: the
+sibling-module list led with acronyms (`XFFI`, `XFBA`, `XSIA`, ...)
+instead of the plain-English canonical names. Non-technical builders
+read acronyms as jargon — the XFVE voice rule applies to docs too.
+
+### Changed
+
+- README's "Part of the Xpansion Framework" section now leads with
+  the canonical full names (Finite Intent, Boundary Auditor,
+  Systemic Impact Analysis, Token Conservation, Execution Audit,
+  Memory Tree, Security Auditor). The acronym appears in parens as
+  a code reference. Added Memory Tree and Security Auditor (omitted
+  in 0.3.1).
+
+---
+
 ## [0.3.1] — 2026-05-17 — README polish + Claude Code coverage
 
 Docs-only release. No code changes; bumped to refresh the PyPI

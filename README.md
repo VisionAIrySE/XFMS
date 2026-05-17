@@ -335,21 +335,29 @@ inspect.
 XFMS is the piece that answers *"which model should I be using for
 this?"* — but it lives inside a broader stack:
 
-- **Dispatch** — runtime task router. Identifies what kind of work
-  you're doing and calls the right tool (XFMS for model selection,
-  XFFI for spec generation, XFBA for contract enforcement, others).
-- **XFFI** — finite-intent decomposition. Turns *"build me a
-  feature"* into a finite spec with binary terminals before any
-  code gets written.
-- **XFBA** — contract enforcement on every edit. Stops broken
-  function signatures and mismatched types from shipping.
-- **XSIA** — systemic-impact analysis. Flags the blast radius of
-  proposed changes before they land.
-- **XFTC** — context-window governance. Manages how much of the
-  conversation history needs to stay in the assistant's working
-  memory.
-- **XFXA** — terminal verification at ship time. Confirms every
-  spec terminal is binarily met before declaring a task done.
+- **Dispatch** (`Dispatch`) — runtime task router. Watches what
+  kind of work you're doing and routes it to the right tool.
+- **Finite Intent** (`XFFI`) — turns *"build me a feature"* into a
+  finite spec with binary terminals *before* any code gets written.
+  Stops scope drift at the source.
+- **Boundary Auditor** (`XFBA`) — checks every code edit against
+  contracts. Stops broken function signatures and mismatched types
+  from ever reaching production.
+- **Systemic Impact Analysis** (`XSIA`) — maps the blast radius of
+  a proposed change before it lands. Tells you what else might
+  break.
+- **Token Conservation** (`XFTC`) — manages how much of the
+  conversation has to stay in the assistant's working memory.
+  Prevents context loss in long sessions.
+- **Execution Audit** (`XFXA`) — verifies every promise from the
+  spec was actually met before declaring a task done. The final
+  binary check.
+- **Memory Tree** (`XFMT`) — session snapshots that stay
+  searchable across conversations. Your assistant remembers what
+  you decided last week.
+- **Security Auditor** (`XFSA`) — static + AI security scanning on
+  every code edit. Catches secrets, injection paths, and unsafe
+  patterns before they ship.
 
 The full picture, with the rest of the modules, lives at
 [xpansion.dev](https://xpansion.dev).
