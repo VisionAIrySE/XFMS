@@ -121,16 +121,32 @@ class XFMSClient:
         latency: float | None = None,
         privacy: float | None = None,
         capabilities: list[str] | None = None,
+        primary: list[str] | None = None,
         top_n: int = 5,
         infer_quality_weights: bool = True,
         infer_capabilities: bool = True,
         leaf_priorities: dict[str, float] | None = None,
         decision_source: str = "manual",
         explain: bool = True,
+        ab: bool = False,
     ) -> dict[str, Any]:
-        """Rank the catalog for a stated purpose. Returns the JSON
-        response: models[], inferred_quality_weights, explanation,
-        auto_inferred_capabilities, etc."""
+        """Rank the catalog for a stated purpose.
+
+        `primary` — list of branch names ("cost", "quality", "latency",
+            "privacy") to mark as primary tier. When primary is set, the
+            engine switches from weighted-sum blending to lexicographic
+            ordering — the primary dimension is the sole ranking axis
+            and other dimensions only break ties. Sacrosanct user
+            preference: "I want the cheapest model" actually picks the
+            cheapest.
+
+        `ab` — when True, hits the /rank-ab endpoint which runs the top
+            3 picks against 5 generated test queries (expanding to 10
+            or 15 on incongruity) and returns the result with an
+            `ab_result` block containing real-world cost/latency stats
+            plus plain-English commentary about who won what.
+        """
+        primary_set = {b.strip().lower() for b in (primary or []) if b and b.strip()}
         decisions: list[dict[str, Any]] = []
         if capabilities:
             decisions.append({
@@ -140,16 +156,21 @@ class XFMSClient:
             })
         else:
             decisions.append({"branch": "capability", "type": "dontcare"})
-        decisions.append({"branch": "quality", "type": "weight", "value": quality})
-        decisions.append({"branch": "cost", "type": "weight", "value": cost})
+
+        def _weight_dec(branch: str, value: float) -> dict[str, Any]:
+            d: dict[str, Any] = {"branch": branch, "type": "weight", "value": value}
+            if branch in primary_set:
+                d["tier"] = "primary"
+            return d
+
+        decisions.append(_weight_dec("quality", quality))
+        decisions.append(_weight_dec("cost", cost))
         decisions.append(
-            {"branch": "latency", "type": "weight", "value": latency}
-            if latency is not None
+            _weight_dec("latency", latency) if latency is not None
             else {"branch": "latency", "type": "dontcare"}
         )
         decisions.append(
-            {"branch": "privacy", "type": "weight", "value": privacy}
-            if privacy is not None
+            _weight_dec("privacy", privacy) if privacy is not None
             else {"branch": "privacy", "type": "dontcare"}
         )
 
@@ -165,7 +186,8 @@ class XFMSClient:
         if leaf_priorities:
             body["leaf_priorities"] = leaf_priorities
 
-        return self._post("/rank", body)
+        endpoint = "/rank-ab" if ab else "/rank"
+        return self._post(endpoint, body)
 
     def pick(self, purpose: str, **kwargs: Any) -> dict[str, Any]:
         """Return only the top pick. Same shape as rank() with

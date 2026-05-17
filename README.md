@@ -112,6 +112,33 @@ xfms rank "summarizing a long legal contract" --top-n 3
 xfms rank "OCR a handwritten manifest" -c vision -c tool_use
 ```
 
+When you actually mean **"the cheapest model, period"** — make cost the
+*primary* dimension and the engine switches to lexicographic ordering.
+The cheapest model wins; other dimensions only break ties:
+
+```bash
+xfms rank "cheapest model that can parse a 5-page PDF" --primary cost
+```
+
+When you want to **see how the picks actually behave on your kind of query**
+— add `--ab` and the engine runs the top 3 picks against 5 generated test
+queries (expanding to 10 or 15 if the picks trade wins), then surfaces
+real-world cost/latency plus plain-English commentary:
+
+```bash
+xfms rank "summarizing 50-page commercial leases" --ab
+```
+
+The A/B output ends with a one-paragraph summary along the lines of *"On
+the test queries, Model X was 60% cheaper but Model Y was 30% faster —
+they trade off."* You decide.
+
+If XFMS detects something you didn't ask for but probably need — like
+streaming for a real-time chat use case — it surfaces a **latent-
+requirement suggestion** at the top of the response. The Koinonos lesson:
+sometimes you don't know what you don't know. Accept and re-run with `-c`,
+or ignore and ship.
+
 **Python:**
 
 ```python

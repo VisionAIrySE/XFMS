@@ -18,5 +18,5 @@ Part of the Xpansion Framework — https://xpansion.dev.
 
 from .client import XFMSClient, XFMSError, rank, pick
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 __all__ = ["XFMSClient", "XFMSError", "rank", "pick", "__version__"]
