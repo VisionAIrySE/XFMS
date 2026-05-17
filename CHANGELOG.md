@@ -6,6 +6,24 @@ allowed to introduce breaking changes with a `BREAKING:` note.
 
 ---
 
+## [0.3.3] — 2026-05-17 — thesis-led Xpansion section
+
+Docs-only patch. The "Part of the Xpansion Framework" section now
+opens with the canonical Xpansion thesis instead of a generic
+"unified architecture" line.
+
+The thesis (verbatim Russ phrasing): **humans communicate with
+intent compressed by contextual experience; AI simply predicts
+patterns in language; Xpansion is the execution layer that bridges
+them.** The README expands that into the decompress-enforce-verify
+flow and then lists each module as one specific enforcement of the
+contract.
+
+This thesis is now saved as project memory so future doc work
+pulls from Russ's own framing instead of getting reinvented.
+
+---
+
 ## [0.3.2] — 2026-05-17 — names-first phrasing in Xpansion section
 
 Docs-only patch. Caught on the 0.3.1 PyPI page review: the

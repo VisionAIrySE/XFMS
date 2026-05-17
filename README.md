@@ -325,15 +325,36 @@ The short version:
 ## Part of the Xpansion Framework
 
 XFMS doesn't stand alone — it's the model-selection layer of the
-**[Xpansion Framework](https://xpansion.dev)**, a unified
-architecture for governing AI-assisted work. The Framework is built
-around a simple principle: AI tools should be guiding companions,
-not opaque automatons. Every recommendation it makes is auditable,
-every decision is sourced, every claim maps to evidence you can
-inspect.
+**[Xpansion Framework](https://xpansion.dev)**.
+
+### The Xpansion thesis
+
+> **Humans communicate with intent compressed by contextual experience.
+> AI simply predicts patterns in language. Xpansion is the execution
+> layer that bridges them.**
+
+Every sentence a human types carries lifetimes of context that the
+speaker assumes the other side will decompress — what counts as "good
+enough," which constraints are non-negotiable, what failures last
+month taught them, what their house style demands. AI doesn't share
+that context. It predicts patterns in language, filling in the gaps
+with whatever's plausible to its training data. The result reads as
+plausible but isn't intent-honoring: sessions lose context, security
+holes ship silently, contracts break without warning, and there's no
+way to verify that what was built actually matches what was asked
+for. **They don't know what they don't know, and neither does AI.**
+
+Xpansion closes the gap. It **decompresses finite intent upfront**,
+**enforces it through code-driven AI behavior**, and **delivers
+binary-verified results against the intent across persistent
+memory** that survives every session boundary.
+
+### One module per enforcement
 
 XFMS is the piece that answers *"which model should I be using for
-this?"* — but it lives inside a broader stack:
+this?"* — but it lives inside a broader stack, where each module
+enforces one specific commitment AI can't be trusted to honor on
+its own:
 
 - **Dispatch** (`Dispatch`) — runtime task router. Watches what
   kind of work you're doing and routes it to the right tool.
