@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/xfms.svg?label=pypi&color=blue)](https://pypi.org/project/xfms/)
 [![Python](https://img.shields.io/pypi/pyversions/xfms.svg)](https://pypi.org/project/xfms/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![smithery badge](https://smithery.ai/badge/russ-mwq9/xfms)](https://smithery.ai/servers/russ-mwq9/xfms)
 [![Xpansion Framework](https://img.shields.io/badge/part%20of-Xpansion%20Framework-black)](https://xpansion.dev)
 
 **Pick the right LLM for your task — without the Twitter vibes.**
