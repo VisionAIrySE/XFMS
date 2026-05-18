@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.VisionAIrySE/xfms",
+  "name": "dev.xpansion/xfms",
   "title": "XFMS — Model Source",
   "description": "Pick the right LLM for any task. Ranked shortlist with rationale across 8 evaluators.",
   "version": "0.4.0",
