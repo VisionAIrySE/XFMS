@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.VisionAIrySE/xfms",
+  "title": "XFMS — Model Source",
+  "description": "Pick the right LLM for any task. Ranked shortlist with rationale across 8 evaluators.",
+  "version": "0.4.0",
+  "websiteUrl": "https://xpansion.dev/xfms",
+  "repository": {
+    "url": "https://github.com/VisionAIrySE/XFMS",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://xfms.vercel.app/mcp/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Bearer token. Request a free XFMS access key at https://xpansion.dev/xfms/get-started.",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
