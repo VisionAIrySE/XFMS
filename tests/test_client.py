@@ -47,7 +47,6 @@ def _client_with_transport(transport: _MockTransport,
     for k, v in env.items():
         os.environ[k] = v
     os.environ.setdefault("XFMS_API_KEY", "test-xfms-key")
-    os.environ.setdefault("OPENROUTER_API_KEY", "sk-or-test-12345")
     c = XFMSClient()
     c._http = httpx.Client(transport=transport)
     return c
@@ -66,7 +65,6 @@ def test_version_is_exported():
 
 def test_missing_xfms_key_raises_helpful_error(monkeypatch):
     monkeypatch.delenv("XFMS_API_KEY", raising=False)
-    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
     # also block the secrets file fallback
     monkeypatch.setattr(
         "xfms_client.client.Path",
@@ -79,43 +77,14 @@ def test_missing_xfms_key_raises_helpful_error(monkeypatch):
         XFMSClient()
 
 
-def test_missing_openrouter_key_is_allowed(monkeypatch):
-    """OR key is an OPTIONAL override. Without one, the client still
-    builds — the hosted endpoint covers inference with its own key."""
-    monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
-    c = XFMSClient()
-    assert c._or_key is None
-
-
-def test_no_openrouter_header_when_key_absent(monkeypatch):
-    """When no OR key is configured, the X-OpenRouter-Key header
-    must NOT be sent — the hosted endpoint falls back to its own key."""
-    monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
-    t = _MockTransport(body={"status": "ranked", "models": [],
-                              "catalog_size": 0, "filtered_out": 0})
-    # Build directly — the _client_with_transport helper would
-    # setdefault an OR key, which is exactly what we want to prove
-    # is not required.
-    c = XFMSClient()
-    c._http = httpx.Client(transport=t)
-    c.rank("test purpose")
-    req = t.calls[-1]
-    assert "x-openrouter-key" not in {h.lower() for h in req.headers.keys()}
-
-
-def test_explicit_keys_win_over_env(monkeypatch):
+def test_explicit_api_key_wins_over_env(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "env-key")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "env-or")
-    c = XFMSClient(api_key="explicit-key", openrouter_api_key="explicit-or")
+    c = XFMSClient(api_key="explicit-key")
     assert c._api_key == "explicit-key"
-    assert c._or_key == "explicit-or"
 
 
 def test_base_url_defaults_to_hosted(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     monkeypatch.delenv("XFMS_BASE_URL", raising=False)
     c = XFMSClient()
     assert c._base_url == "https://xfms.vercel.app"
@@ -123,7 +92,6 @@ def test_base_url_defaults_to_hosted(monkeypatch):
 
 def test_base_url_env_override(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     monkeypatch.setenv("XFMS_BASE_URL", "http://localhost:8000")
     c = XFMSClient()
     assert c._base_url == "http://localhost:8000"
@@ -132,9 +100,8 @@ def test_base_url_env_override(monkeypatch):
 # ── request shape ────────────────────────────────────────────────────
 
 
-def test_rank_sends_both_keys_in_headers(monkeypatch):
+def test_rank_sends_xfms_auth_header(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "xfms_live_abc")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-xyz")
     t = _MockTransport(body={"status": "ranked", "models": [
         {"model_id": "openai/gpt-5.5", "name": "GPT-5.5", "total_score": 0.9}
     ], "catalog_size": 1, "filtered_out": 0})
@@ -143,12 +110,12 @@ def test_rank_sends_both_keys_in_headers(monkeypatch):
     assert t.calls, "request was not sent"
     req = t.calls[-1]
     assert req.headers["authorization"] == "Bearer xfms_live_abc"
-    assert req.headers["x-openrouter-key"] == "sk-or-xyz"
+    # BYOK was dropped in v0.4 — no OR header should ever be sent.
+    assert "x-openrouter-key" not in {h.lower() for h in req.headers.keys()}
 
 
 def test_rank_body_includes_required_decisions(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(body={"status": "ranked", "models": [],
                               "catalog_size": 0, "filtered_out": 0})
     c = _client_with_transport(t)
@@ -165,7 +132,6 @@ def test_rank_body_includes_required_decisions(monkeypatch):
 
 def test_rank_carries_leaf_priorities(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(body={"status": "ranked", "models": [],
                               "catalog_size": 0, "filtered_out": 0})
     c = _client_with_transport(t)
@@ -176,7 +142,6 @@ def test_rank_carries_leaf_priorities(monkeypatch):
 
 def test_pick_returns_first_model(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(body={
         "status": "ranked",
         "models": [
@@ -192,7 +157,6 @@ def test_pick_returns_first_model(monkeypatch):
 
 def test_pick_raises_on_empty_picks(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(body={"status": "low_confidence", "models": [],
                               "catalog_size": 0, "filtered_out": 0})
     c = _client_with_transport(t)
@@ -205,7 +169,6 @@ def test_pick_raises_on_empty_picks(monkeypatch):
 
 def test_401_raises_auth_error(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(status=401, body={"detail": "bad token"})
     c = _client_with_transport(t)
     with pytest.raises(XFMSError, match="Authentication failed"):
@@ -214,7 +177,6 @@ def test_401_raises_auth_error(monkeypatch):
 
 def test_402_raises_openrouter_error(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(status=402, body={"detail": "OR key rejected"})
     c = _client_with_transport(t)
     with pytest.raises(XFMSError, match="OpenRouter"):
@@ -223,7 +185,6 @@ def test_402_raises_openrouter_error(monkeypatch):
 
 def test_429_raises_rate_limit_error(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(status=429, body={"detail": "slow down"})
     c = _client_with_transport(t)
     with pytest.raises(XFMSError, match="Rate limit"):
@@ -232,8 +193,49 @@ def test_429_raises_rate_limit_error(monkeypatch):
 
 def test_network_error_surfaces_cleanly(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "o")
     t = _MockTransport(raise_exc=httpx.ConnectError("connection refused"))
     c = _client_with_transport(t)
     with pytest.raises(XFMSError, match="network error"):
         c.rank("test")
+
+
+def test_compare_posts_to_compare_endpoint_with_model_ids(monkeypatch):
+    """The compare() method must hit /compare and pass through the
+    supplied model_ids as-is — NOT call /rank or /rank-ab and let the
+    engine pick its own candidates."""
+    monkeypatch.setenv("XFMS_API_KEY", "k")
+    body = {
+        "status": "compared",
+        "purpose": "schedule a meeting",
+        "model_ids_requested": ["a/free", "b/free"],
+        "model_ids_tested": ["a/free", "b/free"],
+        "invalid_model_ids": [],
+        "ab_result": {
+            "test_queries": ["q1"],
+            "aggregates": [],
+            "cost_winner_id": "a/free",
+            "latency_winner_id": "a/free",
+            "overall_winner_id": "a/free",
+            "commentary": "ok",
+            "incongruity_detected": False,
+            "queries_executed": 1,
+        },
+        "refusal_reason": None,
+    }
+    t = _MockTransport(status=200, body=body)
+    c = _client_with_transport(t)
+
+    result = c.compare(
+        "schedule a meeting", ["a/free", "b/free"], primary=["cost"]
+    )
+
+    assert len(t.calls) == 1
+    req = t.calls[0]
+    assert req.url.path == "/compare"
+    sent = json.loads(req.content.decode())
+    assert sent["purpose"] == "schedule a meeting"
+    assert sent["model_ids"] == ["a/free", "b/free"]
+    assert sent["primary"] == ["cost"]
+    assert sent["decision_source"] == "manual"
+    assert result["status"] == "compared"
+    assert result["model_ids_tested"] == ["a/free", "b/free"]

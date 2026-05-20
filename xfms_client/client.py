@@ -49,22 +49,6 @@ def _resolve_api_key(explicit: str | None) -> str:
     )
 
 
-def _resolve_openrouter_key(explicit: str | None) -> str | None:
-    """Find the caller's OpenRouter key if one was provided.
-
-    Returns None when no key is set anywhere — the hosted endpoint
-    covers inference with its own key in that case. Power users
-    can supply one via arg, env, or secrets file to route inference
-    through their own OpenRouter account instead.
-    """
-    if explicit:
-        return explicit.strip()
-    env = os.environ.get("OPENROUTER_API_KEY", "").strip()
-    if env:
-        return env
-    return None
-
-
 class XFMSClient:
     """Client for the hosted XFMS API at xfms.vercel.app.
 
@@ -74,24 +58,18 @@ class XFMSClient:
       xpansion.dev/xfms/get-started. Identifies your account for
       rate limiting and the Xpansion mailing list.
 
-    Optional override:
-
-    - `openrouter_api_key` — if you want the small inference call
-      XFMS makes (to figure out which benchmarks matter for your
-      purpose) to route through your OWN OpenRouter account. By
-      default the hosted endpoint covers it with its own key, and
-      you owe nothing for inference.
+    The hosted endpoint covers all inference cost end-to-end. BYOK was
+    dropped in v0.4 — callers no longer supply their own OpenRouter
+    key.
     """
 
     def __init__(
         self,
         api_key: str | None = None,
-        openrouter_api_key: str | None = None,
         base_url: str | None = None,
         timeout: float = _DEFAULT_TIMEOUT,
     ):
         self._api_key = _resolve_api_key(api_key)
-        self._or_key: str | None = _resolve_openrouter_key(openrouter_api_key)
         self._base_url = (
             base_url or os.environ.get("XFMS_BASE_URL") or _DEFAULT_BASE_URL
         ).rstrip("/")
@@ -215,6 +193,39 @@ class XFMSClient:
         body = {"purpose": purpose, "decision_source": "manual", **kwargs}
         return self._post("/discover", body)
 
+    def compare(
+        self,
+        purpose: str,
+        model_ids: list[str],
+        *,
+        primary: list[str] | None = None,
+        decision_source: str = "manual",
+    ) -> dict[str, Any]:
+        """Live A/B between user-named models. NO ranking step.
+
+        `model_ids` — 2–5 catalog model IDs to test head-to-head. The
+            engine honors them as the candidate set, generates 5
+            representative test queries from `purpose`, runs them
+            through every model in parallel, and returns probe
+            aggregates (cost, latency, completion tokens) plus
+            plain-English commentary on who won what. Unknown IDs are
+            dropped with a note; if fewer than 2 resolve the call is
+            refused.
+
+        Use this instead of `rank(..., ab=True)` when the user has
+        already named candidates and wants a head-to-head — `ab=True`
+        always tests the engine's top picks from a full catalog rank,
+        which is the wrong shape for a user-supplied shortlist.
+        """
+        body: dict[str, Any] = {
+            "purpose": purpose,
+            "model_ids": list(model_ids),
+            "decision_source": decision_source,
+        }
+        if primary:
+            body["primary"] = list(primary)
+        return self._post("/compare", body)
+
     # ── transport ──────────────────────────────────────────────────────
 
     def _post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
@@ -223,8 +234,6 @@ class XFMSClient:
             "Content-Type": "application/json",
             "User-Agent": "xfms-python-client/0.1",
         }
-        if self._or_key:
-            headers["X-OpenRouter-Key"] = self._or_key
         try:
             r = self._http.post(
                 f"{self._base_url}{path}",

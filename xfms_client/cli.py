@@ -303,11 +303,6 @@ def build_parser() -> argparse.ArgumentParser:
                         "(default: $XFMS_BASE_URL or https://xfms.vercel.app).")
     p.add_argument("--api-key",
                    help="Override the XFMS API key (default: $XFMS_API_KEY).")
-    p.add_argument("--openrouter-key",
-                   help=("Optional: route the inference call through your "
-                         "own OpenRouter account instead of the hosted "
-                         "endpoint's key. Default: $OPENROUTER_API_KEY if "
-                         "set, otherwise unused (hosted endpoint covers it)."))
     p.add_argument("--json", action="store_true",
                    help="Emit raw JSON instead of human-readable output.")
     sub = p.add_subparsers(dest="command", required=True)
@@ -365,7 +360,6 @@ def main(argv: list[str] | None = None) -> int:
     try:
         with XFMSClient(
             api_key=args.api_key,
-            openrouter_api_key=args.openrouter_key,
             base_url=args.base_url,
         ) as client:
             return args.func(client, args)

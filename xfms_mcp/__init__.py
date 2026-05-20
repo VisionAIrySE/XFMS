@@ -14,8 +14,10 @@ and other local MCP clients expect):
 
 Configuration env vars:
     XFMS_API_KEY        required — request at xpansion.dev/xfms/get-started
-    OPENROUTER_API_KEY  required — your own, BYOK (~$0.001 per pick)
     XFMS_BASE_URL       optional — override the hosted endpoint
+
+The hosted endpoint covers all inference cost end-to-end. BYOK was
+dropped in v0.4 — no OpenRouter key required from callers.
 """
 
 from xfms_mcp.server import main, server

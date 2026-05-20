@@ -7,14 +7,16 @@ XFMS is one module of the Xpansion Framework — a unified
 architecture for governing AI-assisted work. See
 https://xpansion.dev for the full framework.
 
-Three tools are exposed:
+Four tools are exposed:
 
     rank      — return a ranked shortlist of LLMs for a purpose
     pick      — return the single best LLM for a purpose
     discover  — show which quality dimensions matter for a purpose,
                 without ranking
+    compare   — live A/B between 2–5 user-named models for a purpose,
+                no ranking step
 
-All three call the hosted XFMS endpoint at xfms.vercel.app. The
+All four call the hosted XFMS endpoint at xfms.vercel.app. The
 hosted endpoint covers inference cost; no OpenRouter key is
 required to use these tools.
 """
@@ -113,6 +115,45 @@ def discover(purpose: str) -> dict[str, Any]:
     try:
         with _client() as c:
             return c.discover(purpose, decision_source="mcp")
+    except XFMSError as e:
+        return {"error": str(e)}
+
+
+@server.tool()
+def compare(
+    purpose: str,
+    model_ids: list[str],
+    primary: list[str] | None = None,
+) -> dict[str, Any]:
+    """Live A/B between 2–5 user-named models. NO ranking step — the
+    supplied model_ids ARE the candidate set. The engine generates 5
+    representative test queries from the purpose, runs them through
+    every named model in parallel, and returns real cost, latency,
+    completion tokens, plus plain-English commentary on who won
+    what.
+
+    Use this whenever the user has already named specific models to
+    compare (e.g. "A/B test X and Y"). Do NOT use the `rank` tool's
+    A/B mode in that case — it would ignore the supplied IDs and
+    test the engine's own top picks instead. Unknown IDs are dropped
+    with a note; if fewer than 2 resolve, the call is refused.
+
+    Args:
+        purpose: One sentence describing what the models will be used
+            for. Used to generate representative test queries.
+        model_ids: 2–5 catalog model IDs to test head-to-head.
+        primary: Optional. Dimension the user cares most about
+            ("cost", "quality", "latency", "privacy"). Affects only
+            the commentary text — not the test set.
+    """
+    try:
+        with _client() as c:
+            return c.compare(
+                purpose,
+                model_ids,
+                primary=primary,
+                decision_source="mcp",
+            )
     except XFMSError as e:
         return {"error": str(e)}
 
