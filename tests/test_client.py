@@ -87,7 +87,7 @@ def test_base_url_defaults_to_hosted(monkeypatch):
     monkeypatch.setenv("XFMS_API_KEY", "k")
     monkeypatch.delenv("XFMS_BASE_URL", raising=False)
     c = XFMSClient()
-    assert c._base_url == "https://xfms.vercel.app"
+    assert c._base_url == "https://xfms.xpansion.dev"
 
 
 def test_base_url_env_override(monkeypatch):

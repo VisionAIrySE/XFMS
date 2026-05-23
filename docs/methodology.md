@@ -284,7 +284,7 @@ side.
 
 For transparency, the moving parts on the hosted side:
 
-- The **API surface** at `xfms.vercel.app` carries every `/rank`
+- The **API surface** at `xfms.xpansion.dev` carries every `/rank`
   call. The decision-source receipt gate and the user-leaf-priority
   override are enforced there — no call reaches the ranker without
   attested provenance, and any priorities the caller passes

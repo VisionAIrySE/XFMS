@@ -1,7 +1,7 @@
 """XFMS — Xpansion Framework Model Source. Client library.
 
 Pick the right LLM for your task by hitting the hosted XFMS API
-at xfms.vercel.app. Inference cost is covered by the hosted
+at xfms.xpansion.dev. Inference cost is covered by the hosted
 endpoint — you only need a free XFMS access token to use it.
 
 Quick start:

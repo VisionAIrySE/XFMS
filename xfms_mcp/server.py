@@ -16,7 +16,7 @@ Four tools are exposed:
     compare   — live A/B between 2–5 user-named models for a purpose,
                 no ranking step
 
-All four call the hosted XFMS endpoint at xfms.vercel.app. The
+All four call the hosted XFMS endpoint at xfms.xpansion.dev. The
 hosted endpoint covers inference cost; no OpenRouter key is
 required to use these tools.
 """
@@ -137,6 +137,14 @@ def compare(
     A/B mode in that case — it would ignore the supplied IDs and
     test the engine's own top picks instead. Unknown IDs are dropped
     with a note; if fewer than 2 resolve, the call is refused.
+
+    ⚠️ Free-tier models (IDs ending in `:free`) are rate-limited and
+    slow on the OpenRouter side. A free-tier comparison typically
+    takes 1–5 MINUTES, vs. 10–30 seconds for paid models. The probe
+    auto-caps at 3 test queries when any candidate is free-tier (vs.
+    5–15 for paid) to bound runtime. If the user has picked free
+    model IDs, TELL THEM the expected wait time BEFORE invoking this
+    tool so they can opt for paid IDs if speed matters.
 
     Args:
         purpose: One sentence describing what the models will be used

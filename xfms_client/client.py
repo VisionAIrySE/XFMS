@@ -22,7 +22,7 @@ from typing import Any
 
 import httpx
 
-_DEFAULT_BASE_URL = "https://xfms.vercel.app"
+_DEFAULT_BASE_URL = "https://xfms.xpansion.dev"
 _DEFAULT_TIMEOUT = 30.0
 
 
@@ -50,7 +50,7 @@ def _resolve_api_key(explicit: str | None) -> str:
 
 
 class XFMSClient:
-    """Client for the hosted XFMS API at xfms.vercel.app.
+    """Client for the hosted XFMS API at xfms.xpansion.dev.
 
     Only one credential is required:
 
@@ -253,7 +253,7 @@ class XFMSClient:
                 "Inference call failed at the hosted endpoint. If you "
                 "supplied your own OpenRouter key, confirm it is valid "
                 "and funded; otherwise this is a server-side issue at "
-                "xfms.vercel.app — please report it."
+                "xfms.xpansion.dev — please report it."
             )
         if r.status_code == 429:
             raise XFMSError(

@@ -12,7 +12,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://xfms.vercel.app/mcp/",
+      "url": "https://xfms.xpansion.dev/mcp/",
       "headers": [
         {
           "name": "Authorization",

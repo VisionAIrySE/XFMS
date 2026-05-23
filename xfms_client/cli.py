@@ -300,7 +300,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--base-url",
                    help="Override the XFMS server URL "
-                        "(default: $XFMS_BASE_URL or https://xfms.vercel.app).")
+                        "(default: $XFMS_BASE_URL or https://xfms.xpansion.dev).")
     p.add_argument("--api-key",
                    help="Override the XFMS API key (default: $XFMS_API_KEY).")
     p.add_argument("--json", action="store_true",

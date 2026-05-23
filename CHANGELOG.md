@@ -6,6 +6,32 @@ allowed to introduce breaking changes with a `BREAKING:` note.
 
 ---
 
+## [0.5.0] — 2026-05-23 — move hosted endpoint off Vercel; free-tier warning
+
+The hosted XFMS API moves from `xfms.vercel.app` to
+`xfms.xpansion.dev` (running on Fly.io). Reason: Vercel's serverless
+functions have a hard 5-minute ceiling that the `compare` tool was
+hitting whenever it included free-tier OpenRouter models — those
+calls would die mid-flight and never return a response to the
+caller. The new host has no such ceiling.
+
+- `_DEFAULT_BASE_URL` flips to `https://xfms.xpansion.dev`. Override
+  with `XFMS_BASE_URL` env var if you need to point at a different
+  endpoint.
+- `server.json` (Official MCP Registry) updates the hosted MCP URL
+  to `https://xfms.xpansion.dev/mcp/`.
+- The `compare` tool description now warns the AI client that free-
+  tier model comparisons take 1–5 minutes (vs. 10–30 seconds for
+  paid models) so users can be told upfront before the call runs.
+- `smithery.yaml` drops the now-stale BYOK/OpenRouter form field
+  that v0.4 removed from the code but left in the install config.
+
+No client-side code behavior changes. Existing scripts that pin
+`XFMS_BASE_URL` to the old Vercel URL will continue to work until
+Vercel is retired (planned for the next release window).
+
+---
+
 ## [0.4.0] — 2026-05-17 — drop BYOK; hosted MCP endpoint goes live
 
 Breaking-ish (in the SDK contract; transparent in practice): the

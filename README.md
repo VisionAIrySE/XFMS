@@ -21,7 +21,7 @@ a unified architecture for governing AI-assisted work.
 ## What this repository is
 
 A **thin Python client** and **command-line tool** for calling the
-hosted XFMS API at `xfms.vercel.app`. About 250 lines of code. It
+hosted XFMS API at `xfms.xpansion.dev`. About 250 lines of code. It
 turns a one-liner into a ranked LLM shortlist.
 
 What this repository is **not**: the recommender engine, the score
@@ -111,7 +111,7 @@ You need two free keys:
   signup endpoint:
 
   ```bash
-  curl -X POST https://xfms.vercel.app/signup \
+  curl -X POST https://xfms.xpansion.dev/signup \
     -H "Content-Type: application/json" \
     -d '{"email":"you@yourdomain.com"}'
   ```
@@ -208,13 +208,13 @@ copy-pasting between windows.
 ### Hosted install — one line, no install required
 
 The XFMS engine hosts the MCP server itself at
-**`https://xfms.vercel.app/mcp/`**. No `pip install`, no
+**`https://xfms.xpansion.dev/mcp/`**. No `pip install`, no
 OpenRouter key — just point your MCP client at the URL:
 
 **Claude Code:**
 
 ```bash
-claude mcp add xfms --transport http https://xfms.vercel.app/mcp/ \
+claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/ \
   --header "Authorization: Bearer xfms_live_your_key_here"
 ```
 
@@ -224,7 +224,7 @@ claude mcp add xfms --transport http https://xfms.vercel.app/mcp/ \
 {
   "mcpServers": {
     "xfms": {
-      "url": "https://xfms.vercel.app/mcp/",
+      "url": "https://xfms.xpansion.dev/mcp/",
       "headers": {
         "Authorization": "Bearer xfms_live_your_key_here"
       }

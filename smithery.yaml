@@ -7,9 +7,9 @@
 # https://xpansion.dev.
 #
 # When users install via Smithery's UI, they get a form asking for
-# both keys before the server starts. The XFMS key is free
-# (request at xpansion.dev/xfms/get-started). The OpenRouter key
-# is BYOK — their account, their inference cost (~$0.001 per pick).
+# their XFMS access key before the server starts. The key is free
+# (request at xpansion.dev/xfms/get-started). All inference cost is
+# covered by the hosted endpoint — no OpenRouter key required.
 
 name: xfms
 displayName: "XFMS — Pick the right LLM for your task"
@@ -17,8 +17,8 @@ description: >
   Hosted recommender that aggregates 8 independent benchmark sources
   (no provider self-reports) and returns a ranked LLM shortlist with
   plain-English rationale per pick. State your purpose, get a
-  defensible answer. BYOK so your inference cost stays with you.
-  Part of the Xpansion Framework (https://xpansion.dev).
+  defensible answer. Inference cost is fully covered — no OpenRouter
+  key required. Part of the Xpansion Framework (https://xpansion.dev).
 homepage: https://xpansion.dev
 repository: https://github.com/VisionAIrySE/XFMS
 license: MIT
@@ -28,8 +28,7 @@ keywords:
   - benchmarks
   - llm-evaluation
   - xpansion-framework
-  - byok
-  - openrouter
+  - hosted
 
 # stdio is the transport every local MCP client (Claude Desktop,
 # Cursor, Continue, Windsurf) speaks. Smithery's install button
@@ -40,7 +39,6 @@ startCommand:
     type: object
     required:
       - xfmsApiKey
-      - openrouterApiKey
     properties:
       xfmsApiKey:
         type: string
@@ -48,22 +46,13 @@ startCommand:
         description: >
           Identifies you to the hosted XFMS API. Free — request at
           https://xpansion.dev/xfms/get-started. You'll get the key
-          by email after confirming.
-      openrouterApiKey:
-        type: string
-        title: "OpenRouter API Key (BYOK — your account)"
-        description: >
-          XFMS makes a small LLM call per pick to figure out which
-          benchmarks matter for your purpose. That call goes
-          through YOUR OpenRouter account, so the inference cost
-          stays with you (~$0.001 per pick). Sign up free at
-          https://openrouter.ai/keys.
+          by email after confirming. All inference cost is covered
+          by the hosted endpoint; no OpenRouter key required.
   commandFunction: |
     (config) => ({
       command: "xfms-mcp",
       env: {
-        XFMS_API_KEY: config.xfmsApiKey,
-        OPENROUTER_API_KEY: config.openrouterApiKey
+        XFMS_API_KEY: config.xfmsApiKey
       }
     })
 
