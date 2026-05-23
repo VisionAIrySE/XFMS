@@ -107,19 +107,21 @@ the URL below and the tools appear inside your chat:
 
 **`https://xfms.xpansion.dev/mcp/`**
 
-You need one free key — the XFMS access token — to authenticate.
-Request one by submitting your email to the signup endpoint:
+That's it. The three discovery tools — `rank`, `pick`, `discover` —
+are free and work with no key. Your AI assistant does the small
+internal thinking work; we pay for nothing on your behalf, and you
+pay for nothing either.
 
-```bash
-curl -X POST https://xfms.xpansion.dev/signup \
-  -H "Content-Type: application/json" \
-  -d '{"email":"you@yourdomain.com"}'
-```
+The two live-probe tools — `compare` and `benchmark` — actually run
+test queries against the real candidate models on OpenRouter. That
+inference cost rides with you, so they require your own OpenRouter
+key in an `X-OpenRouter-Key` header. You probably already have one —
+you're an OpenRouter model picker's target audience. If not, grab
+one at [openrouter.ai/keys](https://openrouter.ai/keys).
 
-You'll get a confirmation email; click the button inside and your
-API key arrives in a follow-up. That's it — the hosted endpoint
-covers inference, so there's no OpenRouter key to provision and no
-per-pick cost on you.
+The key travels encrypted to our server, is never logged, never
+persisted — used once per request and dropped. Same security posture
+as every other API key in your MCP config.
 
 Concrete install snippets for each AI client are in the next
 section.
@@ -137,14 +139,17 @@ copy-pasting between windows.
 ### Hosted install — one line, no install required
 
 The XFMS engine hosts the MCP server itself at
-**`https://xfms.xpansion.dev/mcp/`**. No `pip install`, no
-OpenRouter key — just point your MCP client at the URL:
+**`https://xfms.xpansion.dev/mcp/`**. Two install shapes depending on
+which tools you want.
+
+### The free three — `rank`, `pick`, `discover`
+
+Just point your client at the URL. No key, no signup.
 
 **Claude Code:**
 
 ```bash
-claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/ \
-  --header "Authorization: Bearer xfms_live_your_key_here"
+claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/
 ```
 
 **Cursor** (`~/.cursor/mcp.json`) — or paste through *Settings → MCP*:
@@ -153,35 +158,56 @@ claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/ \
 {
   "mcpServers": {
     "xfms": {
+      "url": "https://xfms.xpansion.dev/mcp/"
+    }
+  }
+}
+```
+
+### All five tools — adds `compare` and `benchmark`
+
+These two run real test queries against the actual candidate models
+on OpenRouter, so they require your OpenRouter key in an
+`X-OpenRouter-Key` header. Same install, one extra line:
+
+**Claude Code:**
+
+```bash
+claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/ \
+  --header "X-OpenRouter-Key: sk-or-v1-your-key-here"
+```
+
+**Cursor** (`~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "xfms": {
       "url": "https://xfms.xpansion.dev/mcp/",
       "headers": {
-        "Authorization": "Bearer xfms_live_your_key_here"
+        "X-OpenRouter-Key": "sk-or-v1-your-key-here"
       }
     }
   }
 }
 ```
 
-**Continue / Cline / any other MCP host** — same URL + bearer header
+**Continue / Cline / any other MCP host** — same URL + headers
 pattern; check your host's docs for the JSON config shape.
 
-You need one key — the free XFMS access token. Request it at
-[xpansion.dev/xfms/get-started](https://xpansion.dev/xfms/get-started)
-or via [curl](https://github.com/VisionAIrySE/XFMS#install); it
-arrives by email after you click the confirmation link. The hosted
-endpoint pays for the small inference call XFMS makes internally —
-when your host supports MCP sampling (Claude Code does), the call
-routes through *your host's* LLM and we don't pay either. Either
-way, you don't.
-
-Restart your client, then ask it:
+Don't have an OpenRouter key yet? Grab one at
+[openrouter.ai/keys](https://openrouter.ai/keys). Restart your
+client, then ask it:
 
 > *"Use XFMS to pick a model for summarizing long legal contracts."*
 
-Four tools are available to the assistant: **`rank`** (a ranked
+Five tools are available to the assistant: **`rank`** (a ranked
 shortlist), **`pick`** (the single best pick), **`discover`** (which
-quality dimensions matter for your purpose, without ranking), and
-**`compare`** (live A/B between models you've already named).
+quality dimensions matter for your purpose, without ranking),
+**`compare`** (live A/B between models you've already named), and
+**`benchmark`** (live A/B against the engine's top 3 picks).
+`compare` and `benchmark` require the `X-OpenRouter-Key` header
+above; the other three don't.
 
 ---
 
