@@ -98,102 +98,31 @@ Beyond ranking, XFMS gives you these levers to honor what you actually meant:
 
 ---
 
-## Install
+## Install — add one URL to your AI client
+
+XFMS is a hosted Model Context Protocol (MCP) server. There is no
+package to install on your machine. You point your AI assistant —
+Claude Code, Cursor, Continue, Cline, or any MCP-speaking host — at
+the URL below and the tools appear inside your chat:
+
+**`https://xfms.xpansion.dev/mcp/`**
+
+You need one free key — the XFMS access token — to authenticate.
+Request one by submitting your email to the signup endpoint:
 
 ```bash
-pip install xfms
+curl -X POST https://xfms.xpansion.dev/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@yourdomain.com"}'
 ```
 
-You need two free keys:
+You'll get a confirmation email; click the button inside and your
+API key arrives in a follow-up. That's it — the hosted endpoint
+covers inference, so there's no OpenRouter key to provision and no
+per-pick cost on you.
 
-- **Xpansion Framework Model Source access key** — identifies you
-  to the hosted API. Request one by submitting your email to the
-  signup endpoint:
-
-  ```bash
-  curl -X POST https://xfms.xpansion.dev/signup \
-    -H "Content-Type: application/json" \
-    -d '{"email":"you@yourdomain.com"}'
-  ```
-
-  You'll get a confirmation email; click the button inside and
-  your API key arrives in a follow-up email.
-
-That's it — the hosted endpoint covers inference. There's no
-OpenRouter key to provision, no per-pick cost on you, no second
-account to manage. Configure the one key:
-
-```bash
-export XFMS_API_KEY=xfms_live_...
-```
-
-(Power users CAN supply their own OpenRouter key via
-`OPENROUTER_API_KEY` or `--openrouter-key` to route inference
-through their own account — but it's purely optional.)
-
-## Use
-
-**Command line:**
-
-```bash
-xfms rank "writing a tight editorial under a budget"
-```
-
-```bash
-xfms pick "fixing bugs in our Python codebase"
-```
-
-```bash
-xfms rank "summarizing a long legal contract" --top-n 3
-```
-
-```bash
-xfms rank "OCR a handwritten manifest" -c vision -c tool_use
-```
-
-When you actually mean **"the cheapest model, period"** — make cost the
-*primary* dimension and the engine switches to lexicographic ordering.
-The cheapest model wins; other dimensions only break ties:
-
-```bash
-xfms rank "cheapest model that can parse a 5-page PDF" --primary cost
-```
-
-When you want to **see how the picks actually behave on your kind of query**
-— add `--ab` and the engine runs the top 3 picks against 5 generated test
-queries (expanding to 10 or 15 if the picks trade wins), then surfaces
-real-world cost/latency plus plain-English commentary:
-
-```bash
-xfms rank "summarizing 50-page commercial leases" --ab
-```
-
-The A/B output ends with a one-paragraph summary along the lines of *"On
-the test queries, Model X was 60% cheaper but Model Y was 30% faster —
-they trade off."* You decide.
-
-If XFMS detects something you didn't ask for but probably need — like
-streaming for a real-time chat use case — it surfaces a **latent-
-requirement suggestion** at the top of the response. The Koinonos lesson:
-sometimes you don't know what you don't know. Accept and re-run with `-c`,
-or ignore and ship.
-
-**Python:**
-
-```python
-from xfms_client import XFMSClient
-
-with XFMSClient() as xfms:
-    result = xfms.rank("writing a tight editorial under a budget")
-    print(result["models"][0]["name"])
-```
-
-Or the one-shot:
-
-```python
-from xfms_client import pick
-print(pick("fixing bugs in our Python codebase")["name"])
-```
+Concrete install snippets for each AI client are in the next
+section.
 
 ---
 
@@ -249,33 +178,10 @@ Restart your client, then ask it:
 
 > *"Use XFMS to pick a model for summarizing long legal contracts."*
 
-### Offline install — pip-installed local MCP server
-
-For air-gapped environments or local development, the `xfms`
-Python package also ships a stdio MCP server you can install
-locally:
-
-```bash
-pip install 'xfms[mcp]'
-```
-
-Then register it with your host (uses `xfms-mcp` as the command):
-
-```bash
-claude mcp add xfms -- xfms-mcp \
-  --env XFMS_API_KEY=xfms_live_your_key_here
-```
-
-The local server hits the same hosted endpoint, so the inference-cost
-behavior is identical to the hosted MCP install above.
-
-Three tools are available to the assistant: **`rank`** (a ranked
-shortlist), **`pick`** (the single best pick), and **`discover`**
-(which quality dimensions matter for your purpose, without ranking).
-
-**One-click install via Smithery** — the [Smithery registry](https://smithery.ai)
-hosts a copy of this config so you can install without hand-editing
-JSON. Listed shortly after launch.
+Four tools are available to the assistant: **`rank`** (a ranked
+shortlist), **`pick`** (the single best pick), **`discover`** (which
+quality dimensions matter for your purpose, without ranking), and
+**`compare`** (live A/B between models you've already named).
 
 ---
 
