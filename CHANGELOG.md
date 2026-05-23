@@ -23,8 +23,17 @@ caller. The new host has no such ceiling.
 - The `compare` tool description now warns the AI client that free-
   tier model comparisons take 1–5 minutes (vs. 10–30 seconds for
   paid models) so users can be told upfront before the call runs.
-- `smithery.yaml` drops the now-stale BYOK/OpenRouter form field
-  that v0.4 removed from the code but left in the install config.
+- `smithery.yaml` is removed entirely (it configured a stdio install
+  path requiring `pip install xfms[mcp]`; XFMS is now a hosted-only
+  MCP service — there's no local install).
+- README install/use sections are rewritten around the hosted MCP
+  URL. The `pip install xfms` Install section and the Python SDK /
+  CLI Use section are removed — both required the deprecated PyPI
+  package.
+- The `xfms` PyPI package itself is being retired. Existing copies
+  still function against the old `xfms.vercel.app` host until that
+  is decommissioned; at that point all PyPI versions will be yanked
+  so pinned installs fail loudly rather than silently.
 
 No client-side code behavior changes. Existing scripts that pin
 `XFMS_BASE_URL` to the old Vercel URL will continue to work until
