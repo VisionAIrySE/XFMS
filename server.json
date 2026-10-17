@@ -3,7 +3,7 @@
   "name": "dev.xpansion/xfms",
   "title": "XF Model Source",
   "description": "Find the right AI model for your job. Free discovery and ranking; tests on your own key.",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "websiteUrl": "https://xpansion.dev/xfms",
   "repository": {
     "url": "https://github.com/VisionAIrySE/XFMS",
