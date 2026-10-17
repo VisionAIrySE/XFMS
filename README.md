@@ -1,251 +1,90 @@
-# XFMS — Xpansion Framework Model Source
+# XF Model Source (XFMS)
 
-[![PyPI](https://img.shields.io/pypi/v/xfms.svg?label=pypi&color=blue)](https://pypi.org/project/xfms/)
-[![Python](https://img.shields.io/pypi/pyversions/xfms.svg)](https://pypi.org/project/xfms/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![smithery badge](https://smithery.ai/badge/russ-mwq9/xfms)](https://smithery.ai/servers/russ-mwq9/xfms)
-[![Xpansion Framework](https://img.shields.io/badge/part%20of-Xpansion%20Framework-black)](https://xpansion.dev)
+[![Part of the Xpansion Framework](https://img.shields.io/badge/part%20of-Xpansion%20Framework-black)](https://xpansion.dev)
 
-**Pick the right LLM for your task — without the Twitter vibes.**
+**Find the AI model your job really needs, and prove it on your own tasks.**
 
-State what you're using the model for. XFMS aggregates evidence from
-eight independent benchmark sources, normalizes it onto a common
-scale, lets your intent decide which dimensions matter, and returns
-a ranked shortlist with plain-English rationale for every pick.
+AI is specialized. There are 450+ models on [OpenRouter](https://openrouter.ai), and the one every vendor calls
+"the best" was not measured on your job. XF Model Source works inside the assistant you already use
+(Claude Code, Cursor, Cline, Continue, any MCP client) and does three things:
 
-XFMS is one module of the **[Xpansion Framework](https://xpansion.dev)** —
-a unified architecture for governing AI-assisted work.
+1. **Finds what your job needs.** It asks a few plain questions and turns your answers into the job's real
+   requirements: what goes in, what must come back, the format, the cost ceiling, what must never happen.
+2. **Narrows the field.** It checks every model against those requirements using independent test scores, each
+   model's published capabilities and price, and the results of our own comparisons, then produces a shortlist.
+3. **Proves it on your tasks.** A screening round runs about 12 likely models on one of your sample tasks.
+   Any model that breaks a must-have is ruled out, and the best six run all your tasks. You get the winner,
+   the reasons, and every answer so you can check it yourself.
 
----
-
-## What this repository is
-
-A **thin Python client** and **command-line tool** for calling the
-hosted XFMS API at `xfms.xpansion.dev`. About 250 lines of code. It
-turns a one-liner into a ranked LLM shortlist.
-
-What this repository is **not**: the recommender engine, the score
-catalog, or the ingestion pipeline. Those run on the hosted service.
-The methodology behind every pick is published in full at
-[docs/methodology.md](docs/methodology.md) — every claim there maps
-to code that runs at request time, you just don't run it locally.
+Scores and claims can't tell you whether a model will follow your exact format or avoid inventing a detail.
+So the test, not the leaderboard, makes the final call, and each shortlisted model shows how it has really
+done in our own comparisons.
 
 ---
 
-## What you say:
+## Connect
 
-> *"Fixing bugs in our Python codebase."*
-
-## What you get:
-
-```
-Top picks:
-   1. 0.842  GPT-5.5                 (openai/gpt-5.5)         via OpenAI
-   2. 0.811  Claude Opus 4.7         (anthropic/claude-opus-4.7) via Anthropic
-   3. 0.798  Gemini 3.1 Pro Preview  (google/gemini-3.1-pro-preview) via Google
-
-Inferred quality weights from your purpose:
-  • structured_output_reliability  42.0%  ← BigCodeBench, Aider Polyglot
-  • instruction_following          28.0%  ← LiveBench, Tau-Bench
-  • factuality                     20.0%  ← MMLU, GPQA
-  • coherence                      10.0%  ← LongBench
-
-─── Explanation ───
-Picked GPT-5.5: strong on structured output and instruction following —
-the two dimensions that dominate code-edit work. Beats Claude on Aider
-Polyglot and matches it on LiveBench reasoning, at roughly 60% of the
-per-token cost.
-```
-
-Want to see how the picks actually behave on your kind of query? Add `--ab`:
-
-```
-─── A/B probe ───
-Ran 5 test queries against the top picks.
-  • GPT-4o-mini  avg_latency=5579 ms  total_cost=$0.00156  successes=5
-  • GPT-5.5      avg_latency=8190 ms  total_cost=$0.07640  successes=5
-  • GPT-5.4      avg_latency=8783 ms  total_cost=$0.03493  successes=5
-
-Commentary:
-  Across 5 real test queries, GPT-4o-mini was both cheapest ($0.0016 total)
-  and fastest (5579 ms avg). Clear winner — 98% cheaper and 36% faster
-  than the slowest pick.
-```
-
----
-
-## What XFMS does for you
-
-Beyond ranking, XFMS gives you these levers to honor what you actually meant:
-
-- **`--primary <branch>`** — sacrosanct user preference. When you say
-  *"cheapest model, period"*, the engine switches to lexicographic
-  ranking: cost wins, other dimensions only break ties. No more
-  weighted-blend surprises.
-- **`--ab`** — runs the top 3 picks against 5 real test queries
-  (expanding to 10 or 15 if results trade off) and surfaces commentary
-  on who won what. Grounds the recommendation in actual model behavior,
-  not just benchmarks.
-- **`--strict-priorities`** — when you name two co-equal drivers
-  ("cheap but high quality too"), the engine refuses to silently
-  blend; it asks you which way to break the tie.
-- **Latent-requirement suggestions** — engine surfaces capabilities
-  you didn't ask for but probably need (streaming for real-time chat,
-  vision for OCR), so you don't get burned by what you didn't know.
-- **Deterministic by design** — every internal model call is content-
-  cached; same input always returns the same answer. The "I got
-  different picks for the same question" failure mode is gone.
-
----
-
-## Install — add one URL to your AI client
-
-XFMS is a hosted Model Context Protocol (MCP) server. There is no
-package to install on your machine. You point your AI assistant —
-Claude Code, Cursor, Continue, Cline, or any MCP-speaking host — at
-the URL below and the tools appear inside your chat:
+The server is hosted. There is nothing to install:
 
 **`https://xfms.xpansion.dev/mcp/`**
 
-That's it. The three discovery tools — `rank`, `pick`, `discover` —
-are free and work with no key. Your AI assistant does the small
-internal thinking work; we pay for nothing on your behalf, and you
-pay for nothing either.
-
-The two live-probe tools — `compare` and `benchmark` — actually run
-test queries against the real candidate models on OpenRouter. That
-inference cost rides with you, so they require your own OpenRouter
-key in an `X-OpenRouter-Key` header. You probably already have one —
-you're an OpenRouter model picker's target audience. If not, grab
-one at [openrouter.ai/keys](https://openrouter.ai/keys).
-
-The key travels encrypted to our server, is never logged, never
-persisted — used once per request and dropped. Same security posture
-as every other API key in your MCP config.
-
-Concrete install snippets for each AI client are in the next
-section.
-
----
-
-## Use it inside Claude Code, Cursor, or any MCP client
-
-XFMS speaks **Model Context Protocol** (MCP) — the standard your
-AI assistant uses to call external tools. Once connected, you can
-ask the assistant *"which model should I use for OCR on shipping
-manifests?"* and it calls XFMS for you. No leaving the chat. No
-copy-pasting between windows.
-
-### Hosted install — one line, no install required
-
-The XFMS engine hosts the MCP server itself at
-**`https://xfms.xpansion.dev/mcp/`**. Two install shapes depending on
-which tools you want.
-
-### The free three — `rank`, `pick`, `discover`
-
-Just point your client at the URL. No key, no signup.
-
-**Claude Code:**
+Claude Code:
 
 ```bash
 claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/
 ```
 
-**Cursor** (`~/.cursor/mcp.json`) — or paste through *Settings → MCP*:
+Cursor (`~/.cursor/mcp.json`) and other MCP clients:
 
 ```json
 {
   "mcpServers": {
-    "xfms": {
-      "url": "https://xfms.xpansion.dev/mcp/"
-    }
+    "xfms": { "url": "https://xfms.xpansion.dev/mcp/" }
   }
 }
 ```
 
-### All five tools — adds `compare` and `benchmark`
+Then ask your assistant: *"Help me pick an AI model for pulling the invoice number, date, total and vendor out of
+invoices as JSON, about 2,000 a month. The cheapest one that gets every field right."*
 
-These two run real test queries against the actual candidate models
-on OpenRouter, so they require your OpenRouter key in an
-`X-OpenRouter-Key` header. Same install, one extra line:
+## What it costs
 
-**Claude Code:**
+- **Discovery and the shortlist are free.** Your first three discoveries need no sign-up. After that a free
+  email sign-in keeps it going.
+- **Comparisons run on your own OpenRouter key,** usually a few cents. You see the most a comparison can cost
+  before anything runs, and nothing runs until you say go. Add the key as an `X-OpenRouter-Key` header. It is
+  used for that run and never stored.
+- **XF Model Watch** (optional, from $19 a month) re-tests your saved jobs every week and emails you only when a
+  cheaper or better model passes every one of your checks, plus a warning before your model is retired. Solo
+  $19 (3 jobs), Team $49 (10), Agency $149 (40). 14-day money-back. Details: <https://xfms.xpansion.dev/watch>
 
-```bash
-claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/ \
-  --header "X-OpenRouter-Key: sk-or-v1-your-key-here"
-```
+## Tools
 
-**Cursor** (`~/.cursor/mcp.json`):
+`discover` (finds the job's real requirements), `rank` (the full shortlist with the evidence behind it),
+`pick` (the single best proven model), `compare` (the screening round and test on your tasks), `benchmark`,
+`field_results` (what has worked for jobs of the same kind), and `watch_job` (XF Model Watch).
 
-```json
-{
-  "mcpServers": {
-    "xfms": {
-      "url": "https://xfms.xpansion.dev/mcp/",
-      "headers": {
-        "X-OpenRouter-Key": "sk-or-v1-your-key-here"
-      }
-    }
-  }
-}
-```
+## What we keep
 
-**Continue / Cline / any other MCP host** — same URL + headers
-pattern; check your host's docs for the JSON config shape.
+No conversations are kept. We log the one-line description you start with and an anonymous ID to count use. Our
+own daily comparisons are published at <https://xfms.xpansion.dev>, every answer and every verdict, so the method
+can be checked.
 
-Don't have an OpenRouter key yet? Grab one at
-[openrouter.ai/keys](https://openrouter.ai/keys). Restart your
-client, then ask it:
+## How the shortlist is built
 
-> *"Use XFMS to pick a model for summarizing long legal contracts."*
+1. **No vendor claims as proof.** A model saying it supports JSON or a long context is a claim. We record how
+   often each model actually kept its claims in our own comparisons.
+2. **Missing evidence is shown as missing,** never as good.
+3. **Your requirements decide.** Must-haves filter; priorities order what is left.
+4. **The test decides the winner.** Methodology in [`docs/methodology.md`](docs/methodology.md).
 
-Five tools are available to the assistant: **`rank`** (a ranked
-shortlist), **`pick`** (the single best pick), **`discover`** (which
-quality dimensions matter for your purpose, without ranking),
-**`compare`** (live A/B between models you've already named), and
-**`benchmark`** (live A/B against the engine's top 3 picks).
-`compare` and `benchmark` require the `X-OpenRouter-Key` header
-above; the other three don't.
+## Honest limits
 
----
-
-## Override the system's inference
-
-If you know which quality dimension matters most for your task, say
-so — your preference always wins over the LLM's inference:
-
-```bash
-xfms rank "code refactor" --leaf-priorities "structured_output_reliability=1.0,factuality=0.5"
-```
-
-```python
-xfms.rank(
-    "code refactor",
-    leaf_priorities={"structured_output_reliability": 1.0, "factuality": 0.5},
-)
-```
-
----
-
-## How XFMS picks — the four principles
-
-Methodology in full at [`docs/methodology.md`](docs/methodology.md).
-The short version:
-
-1. **No provider self-reports.** Every score comes from a
-   third-party evaluator running the same protocol across every
-   model.
-2. **No single-source dependence.** Eight independent benchmark
-   sources contribute today; no single leaderboard determines a
-   pick.
-3. **User intent beats LLM inference.** The system infers weights
-   from your purpose, but your stated `leaf_priorities` always
-   override the inference.
-4. **Honest gaps over invented signal.** Missing data is recorded
-   as missing — no interpolation, no synthetic scores. Coverage
-   gaps surface on every pick.
+A comparison uses a handful of your sample tasks, and a model grades part of the answers. Read a result as strong
+evidence for your decision, not a guarantee. We can only report on models we have tested, and the ranking before
+the test is a shortlist, not a verdict.
 
 ---
 
