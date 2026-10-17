@@ -1,7 +1,7 @@
 {
   "name": "xfms",
   "description": "Find the AI model your job really needs. Works out what the job requires, narrows 450+ OpenRouter models to a shortlist, and tests the best on your own tasks. Free to start.",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "author": { "name": "Russ Wright" },
   "homepage": "https://xfms.xpansion.dev",
   "repository": "https://github.com/VisionAIrySE/XFMS",

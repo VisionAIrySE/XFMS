@@ -26,33 +26,34 @@ done in our own comparisons.
 
 ## Connect
 
-The server is hosted. There is nothing to install:
+The server is hosted. There is nothing to install. The address is:
 
-**`https://xfms.xpansion.dev/mcp/`**
+**`https://xfms.xpansion.dev/mcp`**
 
-Claude Code:
-
-```bash
-claude mcp add xfms --transport http https://xfms.xpansion.dev/mcp/
-```
-
-Cursor (`~/.cursor/mcp.json`) and other MCP clients:
+- **Claude (claude.ai or the desktop app):** Settings, Connectors, Add custom connector, paste the address. Sign in
+  with your email when it opens.
+- **Claude Code:** run `claude mcp add model-source --transport http https://xfms.xpansion.dev/mcp`, then `/mcp`
+  inside Claude Code to sign in.
+- **Cursor, Windsurf and other assistants:** add an HTTP MCP server at the address (Cursor: `~/.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
-    "xfms": { "url": "https://xfms.xpansion.dev/mcp/" }
+    "model-source": { "url": "https://xfms.xpansion.dev/mcp" }
   }
 }
 ```
 
-Then ask your assistant: *"Help me pick an AI model for pulling the invoice number, date, total and vendor out of
-invoices as JSON, about 2,000 a month. The cheapest one that gets every field right."*
+- **An assistant that can't open a sign-in page:** sign in at <https://xfms.xpansion.dev/signin> and use the
+  personal connection link from your account page as the server address. Treat it like a password.
+
+Sign-in is free and needs only your email. Then ask your assistant: *"Help me pick an AI model for pulling the
+invoice number, date, total and vendor out of invoices as JSON, about 2,000 a month. The cheapest one that gets
+every field right."*
 
 ## What it costs
 
-- **Discovery and the shortlist are free.** Your first three discoveries need no sign-up. After that a free
-  email sign-in keeps it going.
+- **Discovery and the shortlist are free.** Sign-in is free and needs only your email.
 - **Comparisons run on your own OpenRouter key,** usually a few cents. You see the most a comparison can cost
   before anything runs, and nothing runs until you say go. Add the key as an `X-OpenRouter-Key` header. It is
   used for that run and never stored.
