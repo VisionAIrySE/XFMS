@@ -34,10 +34,11 @@ The server is hosted. There is nothing to install. The address is:
   with your email when it opens.
 - **Claude Code:** run `claude mcp add model-source --transport http https://xfms.xpansion.dev/mcp`, then `/mcp`
   inside Claude Code to sign in.
-- **Codex:** run `codex mcp add model-source --url https://xfms.xpansion.dev/mcp`, then
-  `codex mcp login model-source` to sign in.
-- **ChatGPT:** Settings, Connectors, Advanced, turn on Developer mode, then Create, paste the address and choose
-  OAuth. Developer mode is only on some paid ChatGPT plans.
+- **Codex (in the ChatGPT desktop app):** Settings, MCP servers, Add server. Name it `model-source`, choose
+  Streamable HTTP, paste the address, save, then select Restart. When it shows Authenticate, select it and sign in
+  with your email.
+- **Codex (in a terminal):** run `codex mcp add model-source --url https://xfms.xpansion.dev/mcp`, then
+  `codex mcp login model-source`.
 - **Cursor, Windsurf and other assistants:** add an HTTP MCP server at the address (Cursor: `~/.cursor/mcp.json`):
 
 ```json
